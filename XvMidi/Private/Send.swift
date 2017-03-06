@@ -1,0 +1,366 @@
+//
+//  MIDIOut.swift
+//  Refraktions
+//
+//  Created by Jason Snell on 11/30/15.
+//  Copyright © 2015 Jason J. Snell. All rights reserved.
+//
+
+import Foundation
+import CoreMIDI
+
+//http://wiki.cockos.com/wiki/index.php/MIDI_Specification
+//https://ccrma.stanford.edu/~craig/articles/linuxmidi/misc/essenmidi.html
+
+class Send {
+    
+    //singleton code
+    static let sharedInstance = Send()
+    fileprivate init() {}
+    
+    //MARK: - VARS -
+    
+    //midi
+    fileprivate var midiClient:MIDIClientRef = 0
+    fileprivate let settings:XvMidiSettings = XvMidiSettings.sharedInstance
+    
+    //ports, endpoints, destinations
+    fileprivate var outputPort = MIDIPortRef()
+    fileprivate var midiDestinations:[MIDIEndpointRef] = []
+    fileprivate var midiDestinationNames:[String] = []
+    fileprivate var activeMidiDestinationIndexes:[Int] = []
+    
+    //translations into MIDI friendly data
+    
+    fileprivate let NOTE_ON_PREFIX:String = "9"
+    fileprivate let NOTE_OFF_PREFIX:String = "8"
+    
+    //MIDI constants
+    fileprivate let MIDI_CHANNEL_TOTAL:Int = 16
+    fileprivate let MIDI_NOTES_MAX:Int = 128
+    
+    internal var debug:Bool = false
+    
+    //MARK: -
+    //MARK: INIT
+   
+    func setup(withClient:MIDIClientRef){
+        
+        //grab local version of client so disconnect can happen in reset func
+        midiClient = withClient
+        
+        //make sure incoming client is valid
+        if (midiClient != 0) {
+            
+            //if output port is successfully initialized...
+            if (initOutputPort()){
+                
+                refreshMidiDestinations()
+                
+            } else {
+                if (debug) { print("MIDI SEND: ERROR initializing output port") }
+            }
+            
+        } else {
+            if (debug) { print("MIDI SEND: ERROR client not valid") }
+        }
+        
+    }
+   
+    //MARK: - ACCESSORS
+    internal func getMidiDestinationNames() -> [String] {
+        return midiDestinationNames
+    }
+    
+    internal func getActiveMidiDestinationIndexes() -> [Int] {
+        return activeMidiDestinationIndexes
+    }
+    
+    //MARK: - DESTINATIONS
+    
+    internal func refreshMidiDestinations() {
+        
+        //reset all
+        midiDestinations = []
+        midiDestinationNames = []
+        activeMidiDestinationIndexes = []
+        
+        if (debug) {print("MIDI SEND: # of destinations: \(MIDIGetNumberOfDestinations())")}
+        
+        //check destinations
+        if (MIDIGetNumberOfDestinations() > 0){
+            
+            //loop through destinations and names and save in arrays
+            
+            for d:Int in 0 ..< MIDIGetNumberOfDestinations(){
+                
+                let midiDestination = MIDIGetDestination(d)
+                midiDestinations.append(midiDestination)
+                
+                var midiDestinationName : Unmanaged<CFString>?
+                var status = OSStatus(noErr)
+                status = MIDIObjectGetStringProperty(midiDestination, kMIDIPropertyDisplayName, &midiDestinationName)
+                if status == noErr {
+                    let midiDestinationDisplayName = midiDestinationName!.takeRetainedValue() as String
+                    midiDestinationNames.append(midiDestinationDisplayName)
+                }
+                
+            }
+            
+            //compare names with array in defaults
+            //when there is a match, add that index to the active index array
+            
+            //loop through midiDestinations names
+            for n:Int in 0 ..< midiDestinationNames.count {
+                
+                //grab midi destination name
+                let midiDestinationName:String = midiDestinationNames[n]
+                
+                //loop through user selected names
+                for userSelectedMidiDestinationName in settings.userSelectedMidiDestinationNames {
+                    
+                    if (midiDestinationName == String(describing: userSelectedMidiDestinationName)) {
+                        activeMidiDestinationIndexes.append(n)
+                    }
+                    
+                }
+            }
+            
+            if (debug) {
+                print("MIDI SEND: User Selected:", settings.userSelectedMidiDestinationNames)
+                print("MIDI SEND: MIDI Dest:    ", midiDestinations)
+                print("MIDI SEND: MIDI Names:   ", midiDestinationNames)
+                print("MIDI SEND: MIDI Active:  ", activeMidiDestinationIndexes)
+            }
+            
+            
+        } else {
+            if (debug) { print("MIDI SEND: ERROR no destinations detected") }
+        }
+
+    }
+    
+    
+    
+    //MARK:-
+    //MARK: SEQUENCER
+    internal func sequencerStart(){
+        
+        if(debug){ print("MIDI SEND: Sequencer start") }
+        
+        //MIDI Start command
+        let midiData : [UInt8] = [0xFA]
+        sendMidi(data: midiData)
+        
+    }
+    
+    internal func sequencerStop(){
+        
+        if(debug){ print("MIDI SEND: Sequencer stop") }
+        
+        //MIDI Stop command
+        let midiData : [UInt8] = [0xFC]
+        sendMidi(data: midiData)
+        
+    }
+    
+    
+    
+    internal func sequencerMove(toNewPosition:Int){
+        
+        //http://www.recordingblogs.com/sa/Wiki/topic/MIDI-Song-Position-Pointer-message
+        //https://ccrma.stanford.edu/~craig/articles/linuxmidi/misc/essenmidi.html
+        
+        var sixteenthPosition:Int = toNewPosition
+        let phrasePosition:Int = Int(toNewPosition / MIDI_NOTES_MAX)
+        
+        if (sixteenthPosition > MIDI_NOTES_MAX){
+            sixteenthPosition = sixteenthPosition % MIDI_NOTES_MAX
+        }
+        
+        let sixteenthPositionByte = Utils.getByte(fromInt: sixteenthPosition)
+        let phrasePositionByte = Utils.getByte(fromInt: phrasePosition)
+        
+        if(debug){ print("MIDI SEND: Sequencer move to", sixteenthPositionByte, phrasePositionByte) }
+        
+        let midiData : [UInt8] = [0xF2, sixteenthPositionByte, phrasePositionByte]
+        sendMidi(data: midiData)
+        
+        
+    }
+    
+    
+    //MARK:-
+    //MARK: MIDI CLOCK
+    //called by sequencer metronome
+    internal func sendMidiClock(){
+        let clockData:[UInt8] = [0xF8]
+        sendMidi(data: clockData)
+    }
+    
+    //MARK: -
+    //MARK: NOTES
+    internal func noteOn(channel:Int, note:UInt8, velocity:UInt8){
+        
+        //if (debug){ print("MIDI SEND: note on") }
+        
+        //convert it to a hex
+        let midiChannelHex:String = Utils.getHexString(fromInt: channel)
+        
+        //create byte for note on
+        let noteOnByte:UInt8 = Utils.getByte(fromStr: NOTE_ON_PREFIX + midiChannelHex)
+        
+        //input incoming data into UInt8 array
+        //midi data = status (midi command + channel), note number, velocity
+        let midiData : [UInt8] = [noteOnByte, UInt8(note), UInt8(velocity)]
+        
+        //send data
+        sendMidi(data: midiData)
+        
+    }
+    
+    internal func noteOff(channel:Int, note:UInt8){
+        
+        //if (debug){ print("MIDI SEND: note off") }
+        
+        //convert it to a hex
+        let midiChannelHex:String = Utils.getHexString(fromInt: channel)
+        
+        //create byte for note off
+        let noteOffByte:UInt8 = Utils.getByte(fromStr: NOTE_OFF_PREFIX + midiChannelHex)
+        
+        //note off has zero velocity
+        let noteOffVelocity:UInt8 = 0
+        
+        //input incoming data into UInt8 array
+        //midi data = status (midi command + channel), note number, velocity
+        let midiData : [UInt8] = [noteOffByte, UInt8(note), noteOffVelocity]
+    
+        //send midi
+        sendMidi(data: midiData)
+        
+    }
+    
+    internal func allNotesOff(){
+        
+        if (debug){ print("MIDI SEND: all notes off") }
+        
+        //note off has zero velocity
+        let noteOffVelocity:UInt8 = 0
+        
+        for channel:Int in 0 ..< MIDI_CHANNEL_TOTAL {
+            
+            //convert midi channel to a hex
+            let midiChannelHex:String = Utils.getHexString(fromInt: channel)
+            
+            //create byte for note off
+            let noteOffByte:UInt8 = Utils.getByte(fromStr: NOTE_OFF_PREFIX + midiChannelHex)
+            
+            for noteNum:Int in 0 ..< MIDI_NOTES_MAX {
+                
+                if (debug){print("MIDI SEND: Note off: ch =", channel, "note =", noteNum)}
+                
+                //midi data = status (midi command + channel), note number, velocity
+                let midiData : [UInt8] = [noteOffByte, UInt8(noteNum), noteOffVelocity]
+                
+                sendMidi(data: midiData)
+
+            }
+            
+        }
+        
+    }
+    
+    
+    //MARK: -
+    //MARK: SEND DATA
+    fileprivate func sendMidi(data:[UInt8]){
+        
+        //if there are any active destinations
+        if (activeMidiDestinationIndexes.count > 0){
+            
+            //https://en.wikipedia.org/wiki/Nibble#Low_and_high_nibbles
+            //http://www.blitter.com/~russtopia/MIDI/~jglatt/tech/midispec/noteon.htm
+            
+            //create
+            var packet = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
+            let packetList = UnsafeMutablePointer<MIDIPacketList>.allocate(capacity: 1)
+            
+            //init
+            packet = MIDIPacketListInit(packetList)
+            
+            //grab length
+            let packetLength:Int = data.count
+            
+            //packet byte size
+            let packetByteSize:Int = 1024
+            
+            //set to now for instant delivery
+            let timeStamp:MIDITimeStamp = 0
+            
+            //add packet data to the packet list
+            packet = MIDIPacketListAdd(packetList, packetByteSize, packet, timeStamp, packetLength, data)
+            
+            //loop through active destinations and send midi to them all
+            for index in activeMidiDestinationIndexes {
+                let destEndpointRef:MIDIEndpointRef = midiDestinations[index]
+                MIDISend(outputPort, destEndpointRef, packetList)
+            }
+            
+            //release
+            free(packetList)
+
+        } else {
+            if (debug){ print("MIDI SEND: Error no active MIDI destinations during sendMidi") }
+        }
+        
+    }
+    
+    //MARK: -
+    //MARK: RESET
+    internal func reset(){
+        if midiClient != 0 {
+            allNotesOff()
+            midiClient = 0
+            midiDestinations = []
+            midiDestinationNames = []
+        }
+    }
+
+    //MARK:- helper sub funcs
+    
+    fileprivate func initOutputPort() -> Bool {
+        
+        //status var for error handling
+        var status = OSStatus(noErr)
+        
+        //create an output port if it doesn't exist yet
+        if (outputPort == 0){
+            
+            status = MIDIOutputPortCreate(midiClient, "com.jasonjsnell.refraktions.OutputPort" as CFString, &outputPort)
+            
+            //error checking
+            if status == OSStatus(noErr) {
+                
+                if (debug) { print("MIDI SEND: SUCCESS created output port \(outputPort)") }
+                return true
+                
+            } else {
+                
+                if (debug) {
+                    Utils.showError(withStatus:status)
+                    print("MIDI SEND: ERROR creating output port : \(status)")
+                }
+                
+                return false
+                
+            }
+            
+        } else {
+            return true
+        }
+        
+    }
+
+    
+}
