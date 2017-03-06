@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9653BB721E6D63B5007159E5 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9653BB701E6D63B5007159E5 /* Info.plist */; };
-		9653BB731E6D63B5007159E5 /* XvMidi.h in Headers */ = {isa = PBXBuildFile; fileRef = 9653BB711E6D63B5007159E5 /* XvMidi.h */; };
 		9653BB791E6D63DC007159E5 /* NotificationBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB741E6D63DC007159E5 /* NotificationBlock.swift */; };
 		9653BB7A1E6D63DC007159E5 /* Receive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB751E6D63DC007159E5 /* Receive.swift */; };
 		9653BB7B1E6D63DC007159E5 /* ReceiveClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB761E6D63DC007159E5 /* ReceiveClock.swift */; };
@@ -17,11 +15,10 @@
 		9653BB811E6D63E4007159E5 /* XvMidi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB7E1E6D63E4007159E5 /* XvMidi.swift */; };
 		9653BB821E6D63E4007159E5 /* XvMidiConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB7F1E6D63E4007159E5 /* XvMidiConstants.swift */; };
 		9653BB831E6D63E4007159E5 /* XvMidiSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB801E6D63E4007159E5 /* XvMidiSettings.swift */; };
+		96CA81191E6D709700D41F83 /* Basics in Resources */ = {isa = PBXBuildFile; fileRef = 96CA81181E6D709700D41F83 /* Basics */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		9653BB701E6D63B5007159E5 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Basics/Info.plist; sourceTree = "<group>"; };
-		9653BB711E6D63B5007159E5 /* XvMidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XvMidi.h; path = Basics/XvMidi.h; sourceTree = "<group>"; };
 		9653BB741E6D63DC007159E5 /* NotificationBlock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NotificationBlock.swift; path = Private/NotificationBlock.swift; sourceTree = "<group>"; };
 		9653BB751E6D63DC007159E5 /* Receive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Receive.swift; path = Private/Receive.swift; sourceTree = "<group>"; };
 		9653BB761E6D63DC007159E5 /* ReceiveClock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReceiveClock.swift; path = Private/ReceiveClock.swift; sourceTree = "<group>"; };
@@ -31,6 +28,7 @@
 		9653BB7F1E6D63E4007159E5 /* XvMidiConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = XvMidiConstants.swift; path = Public/XvMidiConstants.swift; sourceTree = "<group>"; };
 		9653BB801E6D63E4007159E5 /* XvMidiSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = XvMidiSettings.swift; path = Public/XvMidiSettings.swift; sourceTree = "<group>"; };
 		96BFC1E31E6C22BC005B6D47 /* XvMidi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = XvMidi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		96CA81181E6D709700D41F83 /* Basics */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Basics; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,20 +83,11 @@
 		96BFC1E51E6C22BC005B6D47 /* XvMidi */ = {
 			isa = PBXGroup;
 			children = (
-				96BFC1FA1E6C22FC005B6D47 /* Basics */,
+				96CA81181E6D709700D41F83 /* Basics */,
 				9653BB6F1E6D6382007159E5 /* Public */,
 				9653BB6E1E6D6371007159E5 /* Private */,
 			);
 			path = XvMidi;
-			sourceTree = "<group>";
-		};
-		96BFC1FA1E6C22FC005B6D47 /* Basics */ = {
-			isa = PBXGroup;
-			children = (
-				9653BB701E6D63B5007159E5 /* Info.plist */,
-				9653BB711E6D63B5007159E5 /* XvMidi.h */,
-			);
-			name = Basics;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -108,7 +97,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9653BB731E6D63B5007159E5 /* XvMidi.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -172,7 +160,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9653BB721E6D63B5007159E5 /* Info.plist in Resources */,
+				96CA81191E6D709700D41F83 /* Basics in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -306,7 +294,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = XvMidi/Info.plist;
+				INFOPLIST_FILE = XvMidi/Basics/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -328,7 +316,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = XvMidi/Info.plist;
+				INFOPLIST_FILE = XvMidi/Basics/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
