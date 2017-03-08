@@ -15,7 +15,6 @@
 		9653BB811E6D63E4007159E5 /* XvMidi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB7E1E6D63E4007159E5 /* XvMidi.swift */; };
 		9653BB821E6D63E4007159E5 /* XvMidiConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB7F1E6D63E4007159E5 /* XvMidiConstants.swift */; };
 		9653BB831E6D63E4007159E5 /* XvMidiSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB801E6D63E4007159E5 /* XvMidiSettings.swift */; };
-		96B1BD131E70ABEA0075C653 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 96B1BD121E70ABEA0075C653 /* Info.plist */; };
 		96B1BD151E70ABF00075C653 /* XvMidi.h in Headers */ = {isa = PBXBuildFile; fileRef = 96B1BD141E70ABF00075C653 /* XvMidi.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
@@ -157,7 +156,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				96B1BD131E70ABEA0075C653 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
