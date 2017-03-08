@@ -94,7 +94,7 @@ class Receive {
         midiSourceNames = []
         activeMidiSourceIndexes = []
         
-        if (debug) {print("MIDI SEND: # of destinations: \(MIDIGetNumberOfSources())")}
+        if (debug) {print("MIDI IN: # of sources: \(MIDIGetNumberOfSources())")}
         
         
         //check sources
@@ -191,11 +191,11 @@ class Receive {
             hex = String(format:"0x%X", p.data.2)
             if (debug){ print(hex) }
             
-            let status = packet.data.0
-            let d1 = packet.data.1
-            let d2 = packet.data.2
-            let rawStatus = status & 0xF0 // without channel
-            let channel = status & 0x0F
+            let status:UInt8 = packet.data.0
+            let d1:UInt8 = packet.data.1
+            let d2:UInt8 = packet.data.2
+            let rawStatus:UInt8 = status & 0xF0 // without channel
+            let channel:UInt8 = status & 0x0F
             
             //MIDI system / sync messages
             if (settings.midiSync == XvMidiConstants.MIDI_CLOCK_RECEIVE) {
@@ -208,36 +208,34 @@ class Receive {
                         ReceiveClock.sharedInstance.setTempo(withPacket:packet)
                     }
                     
-                    //TODO: test all notifications
-                    
                     //midi start (abelton)
                     if (status == 0xFA){
                         Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveSystemStart, userInfo: nil)
-                        //Sequencer.sharedInstance.start()
                     }
                     
                     //midi position (abelton, maschine)
                     if (status == 0xF2){
+                        
                         let steps:Int = Int(d1)
                         let patternsOf128Steps:Int = Int(d2)
                         let totalSteps:Int = (patternsOf128Steps * 128) + steps
+                        
                         Utils.postNotification(
                             name: XvMidiConstants.kXvMidiReceiveSystemPosition,
                             userInfo: ["newPosition" : totalSteps])
                         
-                        //Sequencer.sharedInstance.move(toNewPosition: totalSteps)
                     }
                     
                     //midi stop (ableton, maschine)
                     if (status == 0xFC){
-                        Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveSystemStop, userInfo: nil)
-                        //Sequencer.sharedInstance.stop()
+                        Utils.postNotification(
+                            name: XvMidiConstants.kXvMidiReceiveSystemStop,
+                            userInfo: nil)
                     }
                     
                     //midi continue (ableton)
                     if (status == 0xFB){
                         Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveSystemContinue, userInfo: nil)
-                        //Sequencer.sharedInstance.start()
                     }
                     
                 })
@@ -245,36 +243,22 @@ class Receive {
             }
             
             //MARK: note on
+            
             if (rawStatus == 0x90 && settings.midiReceiveEnabled == true){
                 
                 if (debug) { print("Note on. Channel \(channel) note \(d1) velocity \(d2)") }
                 
-                //TODO: test notifications
-                
-                //grab instrument for row num
-                //let instrument:Instrument = InstrumentRack.sharedInstance.getInstrument(fromRowNum: Int(channel))
-                
                 //target the main thread since we are in the read block, a background thread
                 DispatchQueue.main.async(execute: {
                     
-                    Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveNoteOn, userInfo: nil)
+                    Utils.postNotification(
+                        name: XvMidiConstants.kXvMidiReceiveNoteOn,
+                        userInfo: ["channel" : channel, "note" : d1, "velocity" : d2])
                     
-                    /*
-                    //play instrument
-                    let notePlayed:Bool = instrument.play(
-                        velocity: d2,
-                        midiNote: d1)
-                    if (self.debug){
-                        print("MIDI IN: Note played?", notePlayed)
-                    }
-                    
-                    //turn midi light on
-                    VisualOutput.sharedInstance.midiIndicatorOn()
-                    */
                 })
             }
             
-            //TODO: test notificatio
+            
             //MARK: note off
             if (rawStatus == 0x80 && settings.midiReceiveEnabled == true){
                 
@@ -282,8 +266,6 @@ class Receive {
                 DispatchQueue.main.async(execute: {
                     
                     Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveNoteOff, userInfo: nil)
-                    //turn midi light off
-                    //VisualOutput.sharedInstance.midiIndicatorOff()
                     
                 })
             }

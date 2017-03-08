@@ -41,7 +41,6 @@ class NotificationBlock {
                 
             }
             
-            //TODO: test. User changes a setting in panel, have DM update Midi settings, DM resets Midi system, this notification fires, and prints out new settings
             outputCurrentMidiStatus()
             
             break
@@ -127,7 +126,7 @@ class NotificationBlock {
             totalStr = clockStr
         }
         
-        var duration:Float = 3.5
+        var duration:Double = 3.5
         
         //if message is none...
         if (totalStr.characters.count == 0){
@@ -140,9 +139,6 @@ class NotificationBlock {
             name: XvMidiConstants.kXvMidiSetupChanged,
             userInfo: ["message" : totalStr, "duration" : duration])
         
-        //TODO: test in XV MIDI Helper
-        ///VisualOutput.sharedInstance.showText(header: "MIDI", sub: totalStr, duration: duration)
-
     }
     
 }

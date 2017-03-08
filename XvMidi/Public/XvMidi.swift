@@ -30,7 +30,7 @@ import CoreMIDI
 public class XvMidi {
     
     //singleton code
-    static let sharedInstance = XvMidi()
+    public static let sharedInstance = XvMidi()
     fileprivate init() {}
     
     //MARK:- VARIABLES -
@@ -44,7 +44,7 @@ public class XvMidi {
     
     //bools
     fileprivate var active:Bool = false
-    fileprivate var debug:Bool = false
+    fileprivate var debug:Bool = true
     
     
     //MARK: - PUBLIC API -

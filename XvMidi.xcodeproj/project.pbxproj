@@ -83,9 +83,9 @@
 		96BFC1E51E6C22BC005B6D47 /* XvMidi */ = {
 			isa = PBXGroup;
 			children = (
-				96CA81181E6D709700D41F83 /* Basics */,
 				9653BB6F1E6D6382007159E5 /* Public */,
 				9653BB6E1E6D6371007159E5 /* Private */,
+				96CA81181E6D709700D41F83 /* Basics */,
 			);
 			path = XvMidi;
 			sourceTree = "<group>";

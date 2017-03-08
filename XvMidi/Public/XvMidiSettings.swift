@@ -20,12 +20,12 @@ public class XvMidiSettings {
     public var midiSync:String = ""
     
     //names of sources / destinations selected in user prefs
-    public var userSelectedMidiDestinationNames:[String] = []
+    public var userSelectedMidiDestinationNames:[Any] = []
     // public var userSelectedMidiSourceNames:[String] = [] // not used yet
     
     //MARK: - INIT -
     //singleton code
-    static let sharedInstance = XvMidiSettings()
+    public static let sharedInstance = XvMidiSettings()
     fileprivate init() {
         midiSync = XvMidiConstants.MIDI_CLOCK_NONE
     }

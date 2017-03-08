@@ -17,7 +17,7 @@ class Utils {
     fileprivate init() {}
     
     
-    //NOTIFICATIONS
+    //MARK: - NOTIFICATIONS
     class func postNotification(name:String, userInfo:[AnyHashable : Any]?){
         
         let notification:Notification.Name = Notification.Name(rawValue: name)

@@ -82,11 +82,10 @@ class ReceiveClock{
                 //the real tempo jitters, so round it off to see if it's changed
                 if (currRoundedTempo != prevRoundedTempo){
                     
-                    //if so, update the tempo class 
-                    //TODO: set tempo becomes a notification
-                    //let acceptedTempo:Double = Sequencer.sharedInstance.set(bpm:exactTempo)
-                    //let roundedTempoString:String = String(round(10.0 * acceptedTempo) / 10.0)
-                    //VisualOutput.sharedInstance.pulseText(header: "", sub: roundedTempoString)
+                    //if so, send notification
+                    Utils.postNotification(
+                        name: XvMidiConstants.kXvMidiReceiveSystemClock,
+                        userInfo: ["exactTempo" : exactTempo])
         
                 }
                 prevRoundedTempo = currRoundedTempo
