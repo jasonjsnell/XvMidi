@@ -105,14 +105,6 @@ public class XvMidi {
     public func isActive() -> Bool {
         return active
     }
-    
-    public func set(debug:Bool) {
-        self.debug = debug
-        NotificationBlock.sharedInstance.debug = debug
-        Receive.sharedInstance.debug = debug
-        ReceiveClock.sharedInstance.debug = debug
-        Send.sharedInstance.debug = debug
-    }
 
     
     //MARK: - NOTES
