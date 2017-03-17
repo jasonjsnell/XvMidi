@@ -39,7 +39,6 @@ public class XvMidi {
     fileprivate let midiSend:Send = Send.sharedInstance
     fileprivate let midiReceive:Receive = Receive.sharedInstance
     fileprivate var midiClient = MIDIClientRef()
-    fileprivate let utils:Utils = Utils.sharedInstance
     fileprivate let settings:XvMidiSettings = XvMidiSettings.sharedInstance
     
     //bools

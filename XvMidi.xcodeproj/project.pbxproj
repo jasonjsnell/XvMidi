@@ -52,6 +52,7 @@
 				9653BB741E6D63DC007159E5 /* NotificationBlock.swift */,
 				9653BB781E6D63DC007159E5 /* Utils.swift */,
 				96B1BCFB1E70AA310075C653 /* Basics */,
+				96BFC1E41E6C22BC005B6D47 /* Products */,
 			);
 			name = Private;
 			path = XvMidi;
@@ -73,7 +74,6 @@
 				9653BB7F1E6D63E4007159E5 /* XvMidiConstants.swift */,
 				9653BB801E6D63E4007159E5 /* XvMidiSettings.swift */,
 				9653BB6E1E6D6371007159E5 /* Private */,
-				96BFC1E41E6C22BC005B6D47 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
@@ -83,6 +83,7 @@
 				96BFC1E31E6C22BC005B6D47 /* XvMidi.framework */,
 			);
 			name = Products;
+			path = ..;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

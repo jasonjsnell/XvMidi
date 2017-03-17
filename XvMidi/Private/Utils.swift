@@ -11,12 +11,6 @@ import CoreMIDI
 
 class Utils {
 
-    
-    //singleton code
-    static let sharedInstance = Utils()
-    fileprivate init() {}
-    
-    
     //MARK: - NOTIFICATIONS
     class func postNotification(name:String, userInfo:[AnyHashable : Any]?){
         
