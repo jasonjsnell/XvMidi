@@ -13,15 +13,15 @@ public class XvMidiSettings {
     //MARK: - VARS -
     
     //bools to indicate which parts of the system are active or inactive
-    public var midiSendEnabled:Bool = false
-    public var midiReceiveEnabled:Bool = false
+    internal var midiSendEnabled:Bool = false
+    internal var midiReceiveEnabled:Bool = false
     
     //midi sync
-    public var midiSync:String = ""
+    internal var midiSync:String = ""
     
     //names of sources / destinations selected in user prefs
-    public var userSelectedMidiDestinationNames:[Any] = []
-    // public var userSelectedMidiSourceNames:[String] = [] // not used yet
+    internal var userSelectedMidiDestinationNames:[Any] = []
+    // internal var userSelectedMidiSourceNames:[String] = [] // not used yet
     
     //MARK: - INIT -
     //singleton code
@@ -29,5 +29,28 @@ public class XvMidiSettings {
     fileprivate init() {
         midiSync = XvMidiConstants.MIDI_CLOCK_NONE
     }
+    
+    //setters
+    public func set(midiSendEnabled:Bool){
+        self.midiSendEnabled = midiSendEnabled
+    }
+    
+    public func set(midiReceiveEnabled:Bool){
+        self.midiReceiveEnabled = midiReceiveEnabled
+    }
+    
+    public func set(midiSync:String){
+        self.midiSync = midiSync
+    }
+    
+    public func set(userSelectedMidiDestinationNames:[Any]){
+        self.userSelectedMidiDestinationNames = userSelectedMidiDestinationNames
+    }
+    
+    /*
+     public func set(userSelectedMidiSourceNames:[Any]){
+     self.userSelectedMidiSourceNames = userSelectedMidiSourceNames
+     }
+     */
     
 }
