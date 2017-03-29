@@ -24,7 +24,7 @@ class Receive {
     //MARK: - VARS -
     
     fileprivate var midiClient:MIDIClientRef = 0
-    fileprivate let settings:XvMidiSettings = XvMidiSettings.sharedInstance
+    fileprivate let settings:Settings = Settings.sharedInstance
     
     //ports, endpoints, source
     fileprivate var inputPort = MIDIPortRef()
@@ -205,7 +205,7 @@ class Receive {
                     
                     //midi clock
                     if (status == 0xF8){
-                        ReceiveClock.sharedInstance.setTempo(withPacket:packet)
+                        ReceiveClock.sharedInstance.clockFire(withPacket:packet)
                     }
                     
                     //midi start (abelton)

@@ -16,6 +16,7 @@ public class XvMidiConstants {
     public static let kXvMidiReceiveSystemStop:String = "kXvMidiReceiveSystemStop"
     public static let kXvMidiReceiveSystemContinue:String = "kXvMidiReceiveSystemContinue"
     public static let kXvMidiReceiveSystemPosition:String = "kXvMidiReceiveSystemPosition"
+    public static let kXvMidiReceiveSystemTempoChange:String = "kXvMidiReceiveSystemTempoChange"
     public static let kXvMidiReceiveSystemClock:String = "kXvMidiReceiveSystemClock"
     
     //MARK: receive note commands
@@ -37,7 +38,7 @@ public class XvMidiConstants {
     //MARK: Midi Sync
     
     //key + values
-    public static  let kMidiSync:String = "midi_sync"
+    public static let kMidiSync:String = "midi_sync"
     public static let MIDI_CLOCK_RECEIVE:String = "midi_clock_receive"
     public static let MIDI_CLOCK_SEND:String = "midi_clock_send"
     public static let MIDI_CLOCK_NONE:String = "midi_clock_none"

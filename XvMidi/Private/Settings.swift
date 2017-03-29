@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class XvMidiSettings {
+class Settings {
     
     //MARK: - VARS -
     
@@ -25,30 +25,30 @@ public class XvMidiSettings {
     
     //MARK: - INIT -
     //singleton code
-    public static let sharedInstance = XvMidiSettings()
+    internal static let sharedInstance = Settings()
     fileprivate init() {
         midiSync = XvMidiConstants.MIDI_CLOCK_NONE
     }
     
     //setters
-    public func set(midiSendEnabled:Bool){
+    internal func set(midiSendEnabled:Bool){
         self.midiSendEnabled = midiSendEnabled
     }
     
-    public func set(midiReceiveEnabled:Bool){
+    internal func set(midiReceiveEnabled:Bool){
         self.midiReceiveEnabled = midiReceiveEnabled
     }
     
-    public func set(midiSync:String){
+    internal func set(midiSync:String){
         self.midiSync = midiSync
     }
     
-    public func set(userSelectedMidiDestinationNames:[Any]){
+    internal func set(userSelectedMidiDestinationNames:[Any]){
         self.userSelectedMidiDestinationNames = userSelectedMidiDestinationNames
     }
     
     /*
-     public func set(userSelectedMidiSourceNames:[Any]){
+     internal func set(userSelectedMidiSourceNames:[Any]){
      self.userSelectedMidiSourceNames = userSelectedMidiSourceNames
      }
      */

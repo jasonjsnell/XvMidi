@@ -13,7 +13,7 @@ import CoreMIDI
 class NotificationBlock {
     
     internal var debug:Bool = true
-    fileprivate let settings:XvMidiSettings = XvMidiSettings.sharedInstance
+    fileprivate let settings:Settings = Settings.sharedInstance
     
     //singleton code
     static let sharedInstance = NotificationBlock()

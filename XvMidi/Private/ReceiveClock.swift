@@ -33,9 +33,14 @@ class ReceiveClock{
     internal var debug:Bool = false
     
     
-    //MARK:-
-    //MARK:PUBLIC
-    internal func setTempo(withPacket:MIDIPacket){
+    //MARK: - INTERNAL -
+    internal func clockFire(withPacket:MIDIPacket){
+        
+        //if so, send notification
+        Utils.postNotification(
+            name: XvMidiConstants.kXvMidiReceiveSystemClock,
+            userInfo: nil
+        )
         
         //measure distance between this timestamp and the last to calc tempo
         previousClockTime = currentClockTime
@@ -84,7 +89,7 @@ class ReceiveClock{
                     
                     //if so, send notification
                     Utils.postNotification(
-                        name: XvMidiConstants.kXvMidiReceiveSystemClock,
+                        name: XvMidiConstants.kXvMidiReceiveSystemTempoChange,
                         userInfo: ["exactTempo" : exactTempo])
         
                 }
@@ -100,8 +105,7 @@ class ReceiveClock{
         }
     }
     
-    //MARK: -
-    //MARK: PRIVATE
+    //MARK: - PRIVATE
     
     fileprivate func nanosecondConversion(forTime:UInt64) -> UInt64 {
         

@@ -14,7 +14,7 @@
 		9653BB7D1E6D63DC007159E5 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB781E6D63DC007159E5 /* Utils.swift */; };
 		9653BB811E6D63E4007159E5 /* XvMidi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB7E1E6D63E4007159E5 /* XvMidi.swift */; };
 		9653BB821E6D63E4007159E5 /* XvMidiConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB7F1E6D63E4007159E5 /* XvMidiConstants.swift */; };
-		9653BB831E6D63E4007159E5 /* XvMidiSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB801E6D63E4007159E5 /* XvMidiSettings.swift */; };
+		9689ECBD1E8C54B200CDD415 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9689ECBC1E8C54B200CDD415 /* Settings.swift */; };
 		96B1BD151E70ABF00075C653 /* XvMidi.h in Headers */ = {isa = PBXBuildFile; fileRef = 96B1BD141E70ABF00075C653 /* XvMidi.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
@@ -26,7 +26,7 @@
 		9653BB781E6D63DC007159E5 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Utils.swift; path = Private/Utils.swift; sourceTree = "<group>"; };
 		9653BB7E1E6D63E4007159E5 /* XvMidi.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = XvMidi.swift; path = XvMidi/Public/XvMidi.swift; sourceTree = "<group>"; };
 		9653BB7F1E6D63E4007159E5 /* XvMidiConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = XvMidiConstants.swift; path = XvMidi/Public/XvMidiConstants.swift; sourceTree = "<group>"; };
-		9653BB801E6D63E4007159E5 /* XvMidiSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = XvMidiSettings.swift; path = XvMidi/Public/XvMidiSettings.swift; sourceTree = "<group>"; };
+		9689ECBC1E8C54B200CDD415 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Settings.swift; path = Private/Settings.swift; sourceTree = "<group>"; };
 		96B1BD121E70ABEA0075C653 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		96B1BD141E70ABF00075C653 /* XvMidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XvMidi.h; sourceTree = "<group>"; };
 		96BFC1E31E6C22BC005B6D47 /* XvMidi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = XvMidi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -50,6 +50,7 @@
 				9653BB751E6D63DC007159E5 /* Receive.swift */,
 				9653BB761E6D63DC007159E5 /* ReceiveClock.swift */,
 				9653BB741E6D63DC007159E5 /* NotificationBlock.swift */,
+				9689ECBC1E8C54B200CDD415 /* Settings.swift */,
 				9653BB781E6D63DC007159E5 /* Utils.swift */,
 				96B1BCFB1E70AA310075C653 /* Basics */,
 				96BFC1E41E6C22BC005B6D47 /* Products */,
@@ -72,7 +73,6 @@
 			children = (
 				9653BB7E1E6D63E4007159E5 /* XvMidi.swift */,
 				9653BB7F1E6D63E4007159E5 /* XvMidiConstants.swift */,
-				9653BB801E6D63E4007159E5 /* XvMidiSettings.swift */,
 				9653BB6E1E6D6371007159E5 /* Private */,
 			);
 			sourceTree = "<group>";
@@ -168,11 +168,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				9653BB811E6D63E4007159E5 /* XvMidi.swift in Sources */,
-				9653BB831E6D63E4007159E5 /* XvMidiSettings.swift in Sources */,
 				9653BB7D1E6D63DC007159E5 /* Utils.swift in Sources */,
 				9653BB791E6D63DC007159E5 /* NotificationBlock.swift in Sources */,
 				9653BB821E6D63E4007159E5 /* XvMidiConstants.swift in Sources */,
 				9653BB7A1E6D63DC007159E5 /* Receive.swift in Sources */,
+				9689ECBD1E8C54B200CDD415 /* Settings.swift in Sources */,
 				9653BB7B1E6D63DC007159E5 /* ReceiveClock.swift in Sources */,
 				9653BB7C1E6D63DC007159E5 /* Send.swift in Sources */,
 			);

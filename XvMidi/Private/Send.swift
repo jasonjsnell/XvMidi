@@ -22,7 +22,7 @@ class Send {
     
     //midi
     fileprivate var midiClient:MIDIClientRef = 0
-    fileprivate let settings:XvMidiSettings = XvMidiSettings.sharedInstance
+    fileprivate let settings:Settings = Settings.sharedInstance
     
     //ports, endpoints, destinations
     fileprivate var outputPort = MIDIPortRef()
