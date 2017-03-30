@@ -49,11 +49,18 @@ public class XvMidi {
     //MARK: - PUBLIC API -
     
     //MARK: INIT
-    //called by app delegate on app launch
+    //called by DefaultsManager on app launch
     //called by DefaultsManager when leaving settings panel
     public func initMidi() {
         
+        
+        if (debug){
+            print("")
+            print("MIDI <> Assess system launch")
+        }
+        
         //MARK: CHECK USER DEFAULTS
+        
         //if any midi functionality is on...
         
         if (settings.midiSendEnabled ||
@@ -61,8 +68,6 @@ public class XvMidi {
             settings.midiSync != XvMidiConstants.MIDI_CLOCK_NONE) {
             
             //... activate midi interface
-            
-            if (debug){ print("MIDI: Init")}
             
             
             var status = OSStatus(noErr)
@@ -92,12 +97,12 @@ public class XvMidi {
                     //system is now active
                     active = true
                     
-                    if (debug){ print("MIDI: Session now active")}
+                    if (debug){ print("MIDI <> Session now active")}
                     
                 }
                 
             } else {
-                if (debug){ print("MIDI: Session already activated") }
+                if (debug){ print("MIDI <> Session already activated") }
             }
             
             //if no error, move on to init midi receive
@@ -109,7 +114,7 @@ public class XvMidi {
             }
             
         } else {
-            if (debug){ print("MIDI: MIDI not enabled in user prefs, shutdown system") }
+            if (debug){ print("MIDI <> MIDI not enabled in user prefs, shutdown system") }
             shutdown()
         }
         
@@ -226,7 +231,7 @@ public class XvMidi {
         if (settings.midiSendEnabled){
             midiSend.refreshMidiDestinations()
         } else {
-            print("MIDI: Attempting to refresh MIDI destinations when MIDI send is disabled")
+            print("MIDI <> Attempting to refresh MIDI destinations when MIDI send is disabled")
         }
         
     }
@@ -256,12 +261,15 @@ public class XvMidi {
     //called by app delegate if leaving app and background mode is off
     //called by settings panel if toggle is switched off
     public func shutdown(){
-        if (debug){ print("MIDI: shutdown") }
-        active = false
+    
+        if (debug){ print("MIDI <> Shutdown") }
         sequencerStop()
-        midiReceive.reset()
-        midiSend.reset()
+        midiReceive.shutdown()
+        midiSend.shutdown()
+        MIDIClientDispose(midiClient)
         midiClient = 0
+        active = false
+        
     }
 
 
@@ -272,7 +280,7 @@ public class XvMidi {
     //called locally
     fileprivate func initMidiReceive(){
         
-        if (debug){ print("MIDI: Attempt to init midi receive") }
+        if (debug){ print("MIDI <> Assess midi receive") }
         
         //if receive enabled or midi clock is set to receive...
         
@@ -284,9 +292,12 @@ public class XvMidi {
             
         } else {
             
-            if (debug){ print("MIDI: Midi receive not needed due to user prefs") }
+            if (debug){ print("MIDI <> Midi receive not needed, shut it down.") }
             
-            //...else move on to init send
+            //reset (in case it is still active from a prior init)
+            midiReceive.shutdown()
+            
+            //...then move on to init send
             initMidiSend()
         }
         
@@ -296,11 +307,17 @@ public class XvMidi {
     //called by MidiReceive when its setup is complete
     internal func initMidiSend(){
         
-        if (debug){ print("MIDI: Attempt to init midi send") }
+        if (debug){ print("MIDI <> Assess midi send") }
         
         //if send enabled or midi clock is set to send, then init send
         if (settings.midiSendEnabled || settings.midiSync == XvMidiConstants.MIDI_CLOCK_SEND){
+            
             midiSend.setup(withClient: midiClient)
+        
+        } else {
+            
+            if (debug){ print("MIDI <> Midi send not needed, shut it down.") }
+            midiSend.shutdown()
         }
         
     }

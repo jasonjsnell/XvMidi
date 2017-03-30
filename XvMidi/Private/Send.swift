@@ -57,12 +57,14 @@ class Send {
                 
                 refreshMidiDestinations()
                 
+                print("MIDI -> Launch")
+                
             } else {
-                if (debug) { print("MIDI SEND: ERROR initializing output port") }
+                if (debug) { print("MIDI -> ERROR initializing output port") }
             }
             
         } else {
-            if (debug) { print("MIDI SEND: ERROR client not valid") }
+            if (debug) { print("MIDI -> ERROR client not valid") }
         }
         
     }
@@ -85,7 +87,7 @@ class Send {
         midiDestinationNames = []
         activeMidiDestinationIndexes = []
         
-        if (debug) {print("MIDI SEND: # of destinations: \(MIDIGetNumberOfDestinations())")}
+        if (debug) {print("MIDI -> # of destinations: \(MIDIGetNumberOfDestinations())")}
         
         //check destinations
         if (MIDIGetNumberOfDestinations() > 0){
@@ -127,15 +129,15 @@ class Send {
             }
             
             if (debug) {
-                print("MIDI SEND: User Selected:", settings.userSelectedMidiDestinationNames)
-                print("MIDI SEND: MIDI Dest:    ", midiDestinations)
-                print("MIDI SEND: MIDI Names:   ", midiDestinationNames)
-                print("MIDI SEND: MIDI Active:  ", activeMidiDestinationIndexes)
+                print("MIDI -> User Selected:", settings.userSelectedMidiDestinationNames)
+                print("MIDI -> MIDI Dest:    ", midiDestinations)
+                print("MIDI -> MIDI Names:   ", midiDestinationNames)
+                print("MIDI -> MIDI Active:  ", activeMidiDestinationIndexes)
             }
             
             
         } else {
-            if (debug) { print("MIDI SEND: ERROR no destinations detected") }
+            if (debug) { print("MIDI -> ERROR no destinations detected") }
         }
 
     }
@@ -146,7 +148,7 @@ class Send {
     //MARK: SEQUENCER
     internal func sequencerStart(){
         
-        if(debug){ print("MIDI SEND: Sequencer start") }
+        if(debug){ print("MIDI -> Sequencer start") }
         
         //MIDI Start command
         let midiData : [UInt8] = [0xFA]
@@ -156,7 +158,7 @@ class Send {
     
     internal func sequencerStop(){
         
-        if(debug){ print("MIDI SEND: Sequencer stop") }
+        if(debug){ print("MIDI -> Sequencer stop") }
         
         //MIDI Stop command
         let midiData : [UInt8] = [0xFC]
@@ -181,7 +183,7 @@ class Send {
         let sixteenthPositionByte = Utils.getByte(fromInt: sixteenthPosition)
         let phrasePositionByte = Utils.getByte(fromInt: phrasePosition)
         
-        if(debug){ print("MIDI SEND: Sequencer move to", sixteenthPositionByte, phrasePositionByte) }
+        if(debug){ print("MIDI -> Sequencer move to", sixteenthPositionByte, phrasePositionByte) }
         
         let midiData : [UInt8] = [0xF2, sixteenthPositionByte, phrasePositionByte]
         sendMidi(data: midiData)
@@ -202,7 +204,7 @@ class Send {
     //MARK: NOTES
     internal func noteOn(channel:Int, note:UInt8, velocity:UInt8){
         
-        //if (debug){ print("MIDI SEND: note on") }
+        //if (debug){ print("MIDI -> note on") }
         
         //convert it to a hex
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
@@ -221,7 +223,7 @@ class Send {
     
     internal func noteOff(channel:Int, note:UInt8){
         
-        //if (debug){ print("MIDI SEND: note off") }
+        //if (debug){ print("MIDI -> note off") }
         
         //convert it to a hex
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
@@ -244,7 +246,7 @@ class Send {
     internal func allNotesOff(){
         
         if (debug){
-            print("MIDI SEND: all notes off")
+            print("MIDI -> all notes off")
         }
         
         //note off has zero velocity
@@ -260,7 +262,7 @@ class Send {
             
             for noteNum:Int in 0 ..< MIDI_NOTES_MAX {
                 
-                if (debug){print("MIDI SEND: Note off: ch =", channel, "note =", noteNum)}
+                if (debug){print("MIDI -> Note off: ch =", channel, "note =", noteNum)}
                 
                 //midi data = status (midi command + channel), note number, velocity
                 let midiData : [UInt8] = [noteOffByte, UInt8(noteNum), noteOffVelocity]
@@ -313,21 +315,28 @@ class Send {
             free(packetList)
 
         } else {
-            if (debug){ print("MIDI SEND: Error no active MIDI destinations during sendMidi") }
+            if (debug){ print("MIDI -> Error no active MIDI destinations during sendMidi") }
         }
         
     }
     
     //MARK: -
     //MARK: RESET
-    internal func reset(){
-        if midiClient != 0 {
+    internal func shutdown(){
+        
+        print("MIDI -> Shutdown")
+        
+        //if system is active, then send all notes off command to refreshed destinations
+        if (midiClient != 0 && outputPort != 0) {
             refreshMidiDestinations()
             allNotesOff()
-            midiClient = 0
-            midiDestinations = []
-            midiDestinationNames = []
         }
+        
+        MIDIPortDispose(outputPort)
+        outputPort = 0
+        midiClient = 0
+        midiDestinations = []
+        midiDestinationNames = []
     }
 
     //MARK:- helper sub funcs
@@ -345,22 +354,23 @@ class Send {
             //error checking
             if status == OSStatus(noErr) {
                 
-                if (debug) { print("MIDI SEND: SUCCESS created output port \(outputPort)") }
+                print("MIDI -> Output port successfully created", outputPort)
                 return true
                 
             } else {
                 
                 if (debug) {
                     Utils.showError(withStatus:status)
-                    print("MIDI SEND: ERROR creating output port : \(status)")
                 }
+                
+                print("MIDI -> Error creating output port : \(status)")
                 
                 return false
                 
             }
             
         } else {
-            if (debug) { print("MIDI SEND: Output port already created") }
+            print("MIDI -> Output port already created")
             return true
         }
         
