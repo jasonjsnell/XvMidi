@@ -50,10 +50,11 @@ class Receive {
             if (initInputPort()){
                 
                 refreshMidiSources()
+                initComplete()
                 
             } else {
                 
-                if (debug) { print("MIDI IN: ERROR initializing input port") }
+                if (debug) { print("MIDI RECEIVE: ERROR initializing input port") }
                 
                 initComplete()
             }
@@ -61,7 +62,7 @@ class Receive {
             
         } else {
             
-            if (debug) { print("MIDI IN: ERROR client not valid") }
+            if (debug) { print("MIDI RECEIVE: ERROR client not valid") }
             initComplete()
             
         }
@@ -71,7 +72,7 @@ class Receive {
     
     //when the init is complete, move on to init send
     fileprivate func initComplete(){
-        if (debug) { print("MIDI IN: Init complete") }
+        if (debug) { print("MIDI RECEIVE: Init complete") }
         XvMidi.sharedInstance.initMidiSend()
     }
     
@@ -94,7 +95,7 @@ class Receive {
         midiSourceNames = []
         activeMidiSourceIndexes = []
         
-        if (debug) {print("MIDI IN: # of sources: \(MIDIGetNumberOfSources())")}
+        if (debug) {print("MIDI RECEIVE: # of sources: \(MIDIGetNumberOfSources())")}
         
         
         //check sources
@@ -146,17 +147,17 @@ class Receive {
                 }*/
                 
                 if (debug) {
-                    //print("MIDI IN: User Selected:", settings.userSelectedMidiSourceNames) // not used yet
-                    print("MIDI IN: MIDI Sources: ", midiSources)
-                    print("MIDI IN: MIDI Names:   ", midiSourceNames)
-                    print("MIDI IN: MIDI Active:  ", activeMidiSourceIndexes)
+                    //print("MIDI RECEIVE: User Selected:", settings.userSelectedMidiSourceNames) // not used yet
+                    print("MIDI RECEIVE: MIDI Sources: ", midiSources)
+                    print("MIDI RECEIVE: MIDI Names:   ", midiSourceNames)
+                    print("MIDI RECEIVE: MIDI Active:  ", activeMidiSourceIndexes)
                 }
                 
             }*/
             
         } else {
             
-            if (debug) { print("MIDI IN: ERROR no sources detected") }
+            if (debug) { print("MIDI RECEIVE: ERROR no sources detected") }
             
             initComplete()
             
@@ -183,7 +184,7 @@ class Receive {
             
             let p = ap.pointee
             
-            if (debug){print("MIDI IN: Read block: timestamp: \(p.timeStamp)", terminator: " data: ")}
+            if (debug){print("MIDI RECEIVE: Read block: timestamp: \(p.timeStamp)", terminator: " data: ")}
             var hex = String(format:"0x%X", p.data.0)
             if (debug){ print(hex, terminator: " : ") }
             hex = String(format:"0x%X", p.data.1)
@@ -310,7 +311,7 @@ class Receive {
             //error checking
             if status == OSStatus(noErr) {
                 
-                if (debug) { print("MIDI IN: SUCCESS created input port") }
+                if (debug) { print("MIDI RECEIVE: SUCCESS created input port") }
                 return true
                 
             } else {
@@ -318,7 +319,7 @@ class Receive {
                 if (debug) {
                     
                     if (debug) {
-                        print("MIDI IN: ERROR creating input port : \(status)")
+                        print("MIDI RECEIVE: ERROR creating input port : \(status)")
                         Utils.showError(withStatus: status)
                     }
                     
@@ -328,9 +329,12 @@ class Receive {
                 
             }
             
+        } else {
+            if (debug) { print("MIDI RECEIVE: Input port already created") }
+            return true
         }
         
-        return true
+        return false
   
     }
 

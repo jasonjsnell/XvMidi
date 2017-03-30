@@ -64,28 +64,44 @@ public class XvMidi {
             
             if (debug){ print("MIDI: Init")}
             
-            //MARK: INIT SESSION
-            //this allows the device to show up in NetWork Session devices
-            //http://stackoverflow.com/questions/34258035/xcode-iphone-simulator-not-showing-up-in-audio-midi-setup-midi-network-setup
-            let session = MIDINetworkSession.default()
-            session.isEnabled = true
-            session.connectionPolicy = MIDINetworkConnectionPolicy.anyone
             
-            
-            //MARK: INIT MIDI CLIENT
-            //create notifcation blocks for watching messages
-            let notifyBlock: MIDINotifyBlock = NotificationBlock.sharedInstance.notifyBlock
-            
-            //create MIDI client
             var status = OSStatus(noErr)
-            status = MIDIClientCreateWithBlock("com.jasonjsnell.refraktions.MyMIDIClient" as CFString, &midiClient, notifyBlock)
             
-            
-            //if client is created...
-            if status == OSStatus(noErr) {
+            if (!active){
                 
-                //system is now active
-                active = true
+                //MARK: INIT SESSION
+                //only init if system is not active
+                //this allows the device to show up in NetWork Session devices
+                //http://stackoverflow.com/questions/34258035/xcode-iphone-simulator-not-showing-up-in-audio-midi-setup-midi-network-setup
+                
+                let session = MIDINetworkSession.default()
+                session.isEnabled = true
+                session.connectionPolicy = MIDINetworkConnectionPolicy.anyone
+                
+                
+                //MARK: INIT MIDI CLIENT
+                //create notifcation blocks for watching messages
+                let notifyBlock: MIDINotifyBlock = NotificationBlock.sharedInstance.notifyBlock
+                
+                //create MIDI client
+                status = MIDIClientCreateWithBlock("com.jasonjsnell.refraktions.MyMIDIClient" as CFString, &midiClient, notifyBlock)
+            
+                //if client is created...
+                if status == OSStatus(noErr) {
+                    
+                    //system is now active
+                    active = true
+                    
+                    if (debug){ print("MIDI: Session now active")}
+                    
+                }
+                
+            } else {
+                if (debug){ print("MIDI: Session already activated") }
+            }
+            
+            //if no error, move on to init midi receive
+            if status == OSStatus(noErr) {
                 
                 //start with receive (send comes after receive is complete or declined
                 initMidiReceive()
@@ -103,6 +119,25 @@ public class XvMidi {
     //checked by app delegate
     public func isActive() -> Bool {
         return active
+    }
+    
+    //MARK: - SETTERS
+    
+    //setters
+    public func set(midiSendEnabled:Bool){
+        settings.set(midiSendEnabled: midiSendEnabled)
+    }
+    
+    public func set(midiReceiveEnabled:Bool){
+        settings.set(midiReceiveEnabled: midiReceiveEnabled)
+    }
+    
+    public func set(midiSync:String){
+        settings.set(midiSync: midiSync)
+    }
+    
+    public func set(userSelectedMidiDestinationNames:[Any]){
+        settings.set(userSelectedMidiDestinationNames: userSelectedMidiDestinationNames)
     }
 
     
@@ -186,7 +221,14 @@ public class XvMidi {
     //MARK: midi destinations
     //SetMain -> MIDI IO -> MIDI SEND
     public func refreshMidiDestinations(){
-        midiSend.refreshMidiDestinations()
+        
+        //if send is enabled
+        if (settings.midiSendEnabled){
+            midiSend.refreshMidiDestinations()
+        } else {
+            print("MIDI: Attempting to refresh MIDI destinations when MIDI send is disabled")
+        }
+        
     }
     
     //SetMain -> MIDI IO -> MIDI SEND
@@ -230,16 +272,19 @@ public class XvMidi {
     //called locally
     fileprivate func initMidiReceive(){
         
+        if (debug){ print("MIDI: Attempt to init midi receive") }
+        
         //if receive enabled or midi clock is set to receive...
         
         if (settings.midiReceiveEnabled ||
-            settings.midiSync == XvMidiConstants.MIDI_CLOCK_RECEIVE)
-        {
+            settings.midiSync == XvMidiConstants.MIDI_CLOCK_RECEIVE) {
             
             //...then init receive
             midiReceive.setup(withClient: midiClient)
             
         } else {
+            
+            if (debug){ print("MIDI: Midi receive not needed due to user prefs") }
             
             //...else move on to init send
             initMidiSend()
@@ -250,6 +295,8 @@ public class XvMidi {
     //MARK: INIT MIDI SEND
     //called by MidiReceive when its setup is complete
     internal func initMidiSend(){
+        
+        if (debug){ print("MIDI: Attempt to init midi send") }
         
         //if send enabled or midi clock is set to send, then init send
         if (settings.midiSendEnabled || settings.midiSync == XvMidiConstants.MIDI_CLOCK_SEND){

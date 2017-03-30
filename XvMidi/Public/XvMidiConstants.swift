@@ -35,6 +35,9 @@ public class XvMidiConstants {
     //MARK: Midi sources, destinations
     public static let kMidiDestinations:String = "midi_destinations"
     
+    //MARK: Midi outs
+    public static let kMidiOuts:[String] = ["midi_out_0", "midi_out_1", "midi_out_2", "midi_out_3", "midi_out_4", "midi_out_5", "midi_out_6"]
+    
     //MARK: Midi Sync
     
     //key + values

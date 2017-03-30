@@ -243,7 +243,9 @@ class Send {
     
     internal func allNotesOff(){
         
-        if (debug){ print("MIDI SEND: all notes off") }
+        if (debug){
+            print("MIDI SEND: all notes off")
+        }
         
         //note off has zero velocity
         let noteOffVelocity:UInt8 = 0
@@ -320,6 +322,7 @@ class Send {
     //MARK: RESET
     internal func reset(){
         if midiClient != 0 {
+            refreshMidiDestinations()
             allNotesOff()
             midiClient = 0
             midiDestinations = []
@@ -357,6 +360,7 @@ class Send {
             }
             
         } else {
+            if (debug) { print("MIDI SEND: Output port already created") }
             return true
         }
         
