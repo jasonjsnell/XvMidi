@@ -39,7 +39,8 @@ class Send {
     fileprivate let MIDI_CHANNEL_TOTAL:Int = 16
     fileprivate let MIDI_NOTES_MAX:Int = 128
     
-    internal var debug:Bool = false
+    fileprivate let debug:Bool = false
+    fileprivate let sysDebug:Bool = true
     
     //MARK: -
     //MARK: INIT
@@ -57,7 +58,7 @@ class Send {
                 
                 refreshMidiDestinations()
                 
-                print("MIDI -> Launch")
+                if (sysDebug) { print("MIDI -> Launch") }
                 
             } else {
                 if (debug) { print("MIDI -> ERROR initializing output port") }
@@ -324,7 +325,7 @@ class Send {
     //MARK: RESET
     internal func shutdown(){
         
-        print("MIDI -> Shutdown")
+        if (sysDebug) { print("MIDI -> Shutdown") }
         
         //if system is active, then send all notes off command to refreshed destinations
         if (midiClient != 0 && outputPort != 0) {
@@ -354,7 +355,7 @@ class Send {
             //error checking
             if status == OSStatus(noErr) {
                 
-                print("MIDI -> Output port successfully created", outputPort)
+                if (sysDebug) { print("MIDI -> Output port successfully created", outputPort) }
                 return true
                 
             } else {
@@ -363,14 +364,14 @@ class Send {
                     Utils.showError(withStatus:status)
                 }
                 
-                print("MIDI -> Error creating output port : \(status)")
+                if (sysDebug) { print("MIDI -> Error creating output port : \(status)") }
                 
                 return false
                 
             }
             
         } else {
-            print("MIDI -> Output port already created")
+            if (sysDebug) { print("MIDI -> Output port already created") }
             return true
         }
         

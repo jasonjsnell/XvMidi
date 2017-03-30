@@ -33,7 +33,8 @@ class Receive {
     fileprivate var midiSourceNames:[String] = []
     fileprivate var activeMidiSourceIndexes:[Int] = []
     
-    internal var debug:Bool = false
+    fileprivate let debug:Bool = false
+    fileprivate let sysDebug:Bool = true
     
 
     //MARK: -
@@ -51,7 +52,7 @@ class Receive {
                 
                 refreshMidiSources()
                 
-                print("MIDI <- Launch")
+                if (sysDebug) { print("MIDI <- Launch") }
                 
                 initComplete()
                 
@@ -286,7 +287,7 @@ class Receive {
     //MARK: RESET
     internal func shutdown(){
         
-        print("MIDI <- Shutdown")
+        if (sysDebug) { print("MIDI <- Shutdown") }
         
         MIDIPortDisconnectSource(inputPort, sourceEndpointRef)
         MIDIPortDispose(inputPort)
@@ -317,12 +318,12 @@ class Receive {
             //error checking
             if status == OSStatus(noErr) {
                 
-                print("MIDI <- Input port successfully created", inputPort)
+                if (sysDebug) { print("MIDI <- Input port successfully created", inputPort) }
                 return true
                 
             } else {
                 
-                print("MIDI <- Error creating input port : \(status)")
+                if (sysDebug) { print("MIDI <- Error creating input port : \(status)") }
                 
                 if (debug) {
                     Utils.showError(withStatus: status)
@@ -333,7 +334,7 @@ class Receive {
             }
             
         } else {
-            print("MIDI <- Input port already created")
+            if (sysDebug) { print("MIDI <- Input port already created") }
             return true
         }
   
