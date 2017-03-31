@@ -40,6 +40,7 @@ class Send {
     fileprivate let MIDI_NOTES_MAX:Int = 128
     
     fileprivate let debug:Bool = false
+    fileprivate let noteDebug:Bool = false
     fileprivate let sysDebug:Bool = true
     
     //MARK: -
@@ -205,7 +206,7 @@ class Send {
     //MARK: NOTES
     internal func noteOn(channel:Int, note:UInt8, velocity:UInt8){
         
-        //if (debug){ print("MIDI -> note on") }
+        if (noteDebug){ print("MIDI -> note on", channel, note) }
         
         //convert it to a hex
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
@@ -224,7 +225,7 @@ class Send {
     
     internal func noteOff(channel:Int, note:UInt8){
         
-        //if (debug){ print("MIDI -> note off") }
+        if (noteDebug){ print("MIDI -> note off", channel, note) }
         
         //convert it to a hex
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
