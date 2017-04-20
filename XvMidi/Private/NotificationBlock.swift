@@ -19,7 +19,7 @@ class NotificationBlock {
     static let sharedInstance = NotificationBlock()
     fileprivate init() {}
     
-    internal func notifyBlock(_ midiNotification: UnsafePointer<MIDINotification>) {
+    internal func notifyBlock(midiNotification: UnsafePointer<MIDINotification>) {
         
         let notification = midiNotification.pointee
         
@@ -29,16 +29,16 @@ class NotificationBlock {
         switch (notification.messageID) {
             
         case .msgSetupChanged:
+            
             if (debug){ print("MIDI NOTIFY: MIDI setup changed")}
             
-            var mem = midiNotification.pointee
-            withUnsafePointer(to: &mem) { ptr -> Void in
-                let mp = unsafeBitCast(ptr, to: UnsafePointer<MIDIObjectPropertyChangeNotification>.self)
-                let m = mp.pointee
+            midiNotification.withMemoryRebound(to: MIDIObjectPropertyChangeNotification.self, capacity: 1) {
+                
+                let m = $0.pointee
+                
                 if (debug){
                     print("MIDI NOTIFY: id \(m.messageID) / size \(m.messageSize) / object \(m.object) / objectType  \(m.objectType)")
                 }
-                
             }
             
             outputCurrentMidiStatus()
@@ -49,13 +49,15 @@ class NotificationBlock {
             
             if (debug){ print("MIDI NOTIFY: added") }
             
-            var mem = midiNotification.pointee
-            withUnsafePointer(to: &mem) { ptr -> Void in
-                let mp = unsafeBitCast(ptr, to: UnsafePointer<MIDIObjectAddRemoveNotification>.self)
-                let m = mp.pointee
-                if (debug){ print("MIDI NOTIFY: id \(m.messageID) / size \(m.messageSize)") }
-                if (debug){ print("MIDI NOTIFY: child \(m.child) / child type \(m.childType)") }
-                if (debug){ print("MIDI NOTIFY: parent \(m.parent) / parentType \(m.parentType)") }
+            midiNotification.withMemoryRebound(to: MIDIObjectAddRemoveNotification.self, capacity: 1) {
+                
+                let m = $0.pointee
+                
+                if (debug){
+                    print("MIDI NOTIFY: id \(m.messageID) / size \(m.messageSize)")
+                    print("MIDI NOTIFY: child \(m.child) / child type \(m.childType)")
+                    print("MIDI NOTIFY: parent \(m.parent) / parentType \(m.parentType)")
+                }
             }
             
             break
@@ -65,14 +67,16 @@ class NotificationBlock {
             break
             
         case .msgPropertyChanged:
+            
             if (debug){ print("MIDI NOTIFY: kMIDIMsgPropertyChanged") }
             
-            var mem = midiNotification.pointee
-            withUnsafePointer(to: &mem) { ptr -> Void in
-                let mp = unsafeBitCast(ptr, to: UnsafePointer<MIDIObjectPropertyChangeNotification>.self)
-                let m = mp.pointee
-                if (debug){ print("MIDI NOTIFY: id \(m.messageID) / size \(m.messageSize) / object \(m.object) / objectType  \(m.objectType)") }
+            midiNotification.withMemoryRebound(to: MIDIObjectPropertyChangeNotification.self, capacity: 1) {
                 
+                let m = $0.pointee
+                
+                if (debug){
+                    print("MIDI NOTIFY: id \(m.messageID) / size \(m.messageSize) / object \(m.object) / objectType  \(m.objectType)")
+                }
             }
             
             break
