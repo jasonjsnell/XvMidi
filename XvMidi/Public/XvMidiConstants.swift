@@ -29,11 +29,11 @@ public class XvMidiConstants {
     //MARK: - CONSTANTS -
     
     //MARK: Midi send, receive
-    public static let kMidiSendEnabled:String = "midi_send_enabled"
-    public static let kMidiReceiveEnabled:String = "midi_receive_enabled"
+    public static let kMidiSendEnabled:String = "midiSendEnabled"
+    public static let kMidiReceiveEnabled:String = "midiReceiveEnabled"
     
     //MARK: Midi sources, destinations
-    public static let kMidiDestinations:String = "midi_destinations"
+    public static let kMidiDestinations:String = "midiDestinations"
     
     //MARK: Midi outs
     public static let kMidiOuts:[String] = ["midi_out_0", "midi_out_1", "midi_out_2", "midi_out_3", "midi_out_4", "midi_out_5", "midi_out_6", "midi_out_7", "midi_out_8", "midi_out_9", "midi_out_10", "midi_out_11", "midi_out_12", "midi_out_13", "midi_out_14", "midi_out_15"]
@@ -41,10 +41,10 @@ public class XvMidiConstants {
     //MARK: Midi Sync
     
     //key + values
-    public static let kMidiSync:String = "midi_sync"
-    public static let MIDI_CLOCK_RECEIVE:String = "midi_clock_receive"
-    public static let MIDI_CLOCK_SEND:String = "midi_clock_send"
-    public static let MIDI_CLOCK_NONE:String = "midi_clock_none"
+    public static let kMidiSync:String = "midiSync"
+    public static let MIDI_CLOCK_RECEIVE:String = "midiClockReceive"
+    public static let MIDI_CLOCK_SEND:String = "midiClockSend"
+    public static let MIDI_CLOCK_NONE:String = "midiClockNone"
     
     //labels
     public static let MIDI_SYNC_LABEL:String = "MIDI Sync"
