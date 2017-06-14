@@ -34,7 +34,7 @@ class Receive {
     fileprivate var activeMidiSourceIndexes:[Int] = []
     
     fileprivate let debug:Bool = false
-    fileprivate let sysDebug:Bool = true
+    fileprivate let sysDebug:Bool = false
     
 
     //MARK: -

@@ -40,8 +40,8 @@ class Send {
     fileprivate let MIDI_NOTES_MAX:Int = 128
     
     fileprivate let debug:Bool = false
-    fileprivate let noteDebug:Bool = true
-    fileprivate let sysDebug:Bool = true
+    fileprivate let noteDebug:Bool = false
+    fileprivate let sysDebug:Bool = false
     
     //MARK: -
     //MARK: INIT
