@@ -21,6 +21,29 @@ class Utils {
             userInfo: userInfo)
     }
     
+    //MARK: - VELOCITY / VOLUMES
+    // convert a note volume (0.0 - 1.0) to a MIDI volume (0-127)
+    // plus a boost tweak
+    
+    class func getVelocity(fromVolume:Float) -> UInt8 {
+        
+        //convert volume to percentage
+        let pct = fromVolume * 100
+        
+        //convert to number based on velocity max
+        var velocity:Int = Int((127 * pct) / 100)
+        
+        //boost
+        velocity += 70
+        if (velocity > 127){
+            velocity = 127
+        }
+        
+        return UInt8(velocity)
+        
+    }
+ 
+    
     //MARK: - HEX BYTE CONVERSTIONS
     //called by internal and by MidiSend
     class func getHexString(fromInt:Int) -> String {

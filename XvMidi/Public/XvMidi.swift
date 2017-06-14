@@ -126,6 +126,10 @@ public class XvMidi {
         return active
     }
     
+    public func getVelocity(fromVolume:Float) -> UInt8 {
+        return Utils.getVelocity(fromVolume: fromVolume)
+    }
+    
     //MARK: - SETTERS
     
     //setters
