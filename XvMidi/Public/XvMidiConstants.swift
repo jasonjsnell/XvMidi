@@ -27,19 +27,7 @@ public class XvMidiConstants {
     public static let kXvMidiSetupChanged:String = "kXvMidiSetupChanged"
     
     //MARK: - CONSTANTS -
-    
-    //MARK: Midi send, receive
-    //TODO: remove these to the insturment level, nix them here on the app level
-    public static let kMidiSendEnabled:String = "midiSendEnabled"
-    public static let kMidiReceiveEnabled:String = "midiReceiveEnabled"
-    
-    //MARK: Midi sources, destinations
-    public static let kMidiDestinations:String = "midiDestinations"
-    
-    //MARK: Midi outs
-    //TODO: Remove this top level array and move it down to the instrument level
-    public static let kMidiOuts:[String] = ["midi_out_0", "midi_out_1", "midi_out_2", "midi_out_3", "midi_out_4", "midi_out_5", "midi_out_6", "midi_out_7", "midi_out_8", "midi_out_9", "midi_out_10", "midi_out_11", "midi_out_12", "midi_out_13", "midi_out_14", "midi_out_15"]
-    
+
     //MARK: Midi Sync
     
     //key + values
