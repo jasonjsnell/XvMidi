@@ -99,26 +99,19 @@ class NotificationBlock {
     
     fileprivate func outputCurrentMidiStatus(){
         
-        let receive:Bool = settings.midiReceiveEnabled
-        let send:Bool = settings.midiSendEnabled
         let sync = settings.midiSync
         let clockReceive:String = XvMidiConstants.MIDI_CLOCK_RECEIVE
         let clockSend:String = XvMidiConstants.MIDI_CLOCK_SEND
         
-        var msgStr:String = String()
-        if (send && receive) {
-            msgStr += "MESSAGE : SEND + RECEIVE"
-        } else if (send){
-            msgStr += "MESSAGE : SEND"
-        } else if (receive){
-            msgStr += "MESSAGE : RECEIVE"
-        }
+        var msgStr:String = "MIDI CONNECT"
         
         var clockStr:String = String()
         if (sync == clockSend){
             clockStr = "CLOCK : SEND"
         } else if (sync == clockReceive){
             clockStr = "CLOCK : RECEIVE"
+        } else {
+            clockStr = "CLOCK: NONE"
         }
         
         var totalStr:String = String()
@@ -142,7 +135,6 @@ class NotificationBlock {
         Utils.postNotification(
             name: XvMidiConstants.kXvMidiSetupChanged,
             userInfo: ["message" : totalStr, "duration" : duration])
-        
     }
     
 }

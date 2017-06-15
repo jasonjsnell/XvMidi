@@ -43,7 +43,7 @@ public class XvMidi {
     
     //bools
     fileprivate var active:Bool = false
-    fileprivate var debug:Bool = false
+    fileprivate var debug:Bool = true
     
     
     //MARK: - PUBLIC API -
@@ -59,15 +59,10 @@ public class XvMidi {
             print("MIDI <> Assess system launch")
         }
         
-        //MARK: CHECK USER DEFAULTS
+        //TODO: Check audiobus here
+        //if....
         
-        //if any midi functionality is on...
-        
-        if (settings.midiSendEnabled ||
-            settings.midiReceiveEnabled ||
-            settings.midiSync != XvMidiConstants.MIDI_CLOCK_NONE) {
-            
-            //... activate midi interface
+            //activate midi interface
             
             
             var status = OSStatus(noErr)
@@ -112,11 +107,12 @@ public class XvMidi {
                 initMidiReceive()
                 
             }
-            
+        /*
         } else {
             if (debug){ print("MIDI <> MIDI not enabled in user prefs, shutdown system") }
             shutdown()
         }
+        */
         
     }
     
@@ -133,51 +129,26 @@ public class XvMidi {
     //MARK: - SETTERS
     
     //setters
-    public func set(midiSendEnabled:Bool){
-        settings.set(midiSendEnabled: midiSendEnabled)
-    }
-    
-    public func set(midiReceiveEnabled:Bool){
-        settings.set(midiReceiveEnabled: midiReceiveEnabled)
-    }
-    
     public func set(midiSync:String){
         settings.set(midiSync: midiSync)
     }
-    
-    public func set(userSelectedMidiDestinationNames:[Any]){
-        settings.set(userSelectedMidiDestinationNames: userSelectedMidiDestinationNames)
-    }
-
     
     //MARK: - NOTES
     
     public func noteOn(channel:Int, note:UInt8, velocity:UInt8){
         
-        //if send is enabled
-        if (settings.midiSendEnabled){
-            
-            //convert values to MIDI usable and send out
-            midiSend.noteOn(
-                channel: channel,
-                note: note,
-                velocity: velocity
-            )
-            
-        }
-        
+        //convert values to MIDI usable and send out
+        midiSend.noteOn(
+            channel: channel,
+            note: note,
+            velocity: velocity
+        )
     }
     
     public func noteOff(channel:Int, note:UInt8){
         
-        //if send is enabled
-        if (settings.midiSendEnabled){
-            
-            //convert values to MIDI usable and send out
-            midiSend.noteOff(channel: channel, note: note)
-            
-        }
-        
+        //convert values to MIDI usable and send out
+        midiSend.noteOff(channel: channel, note: note)
     }
     
     
@@ -231,13 +202,7 @@ public class XvMidi {
     //SetMain -> MIDI IO -> MIDI SEND
     public func refreshMidiDestinations(){
         
-        //if send is enabled
-        if (settings.midiSendEnabled){
-            midiSend.refreshMidiDestinations()
-        } else {
-            print("MIDI <> Attempting to refresh MIDI destinations when MIDI send is disabled")
-        }
-        
+        midiSend.refreshMidiDestinations()
     }
     
     //SetMain -> MIDI IO -> MIDI SEND
@@ -257,9 +222,7 @@ public class XvMidi {
     //called by shutdown func locally
     
     public func allNotesOff(){
-        if (settings.midiSendEnabled){
-            midiSend.allNotesOff()
-        }
+        midiSend.allNotesOff()
     }
     
     //called by app delegate if leaving app and background mode is off
@@ -284,46 +247,14 @@ public class XvMidi {
     //called locally
     fileprivate func initMidiReceive(){
         
-        if (debug){ print("MIDI <> Assess midi receive") }
-        
-        //if receive enabled or midi clock is set to receive...
-        
-        if (settings.midiReceiveEnabled ||
-            settings.midiSync == XvMidiConstants.MIDI_CLOCK_RECEIVE) {
-            
-            //...then init receive
-            midiReceive.setup(withClient: midiClient)
-            
-        } else {
-            
-            if (debug){ print("MIDI <> Midi receive not needed, shut it down.") }
-            
-            //reset (in case it is still active from a prior init)
-            midiReceive.shutdown()
-            
-            //...then move on to init send
-            initMidiSend()
-        }
-        
+        midiReceive.setup(withClient: midiClient)
     }
     
     //MARK: INIT MIDI SEND
     //called by MidiReceive when its setup is complete
     internal func initMidiSend(){
         
-        if (debug){ print("MIDI <> Assess midi send") }
-        
-        //if send enabled or midi clock is set to send, then init send
-        if (settings.midiSendEnabled || settings.midiSync == XvMidiConstants.MIDI_CLOCK_SEND){
-            
-            midiSend.setup(withClient: midiClient)
-        
-        } else {
-            
-            if (debug){ print("MIDI <> Midi send not needed, shut it down.") }
-            midiSend.shutdown()
-        }
-        
+        midiSend.setup(withClient: midiClient)
     }
     
 }

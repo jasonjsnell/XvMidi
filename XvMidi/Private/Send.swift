@@ -120,18 +120,20 @@ class Send {
                 //grab midi destination name
                 let midiDestinationName:String = midiDestinationNames[n]
                 
+                //TODO: get user selected midi destinations names from the incoming instrument
                 //loop through user selected names
+                /*
                 for userSelectedMidiDestinationName in settings.userSelectedMidiDestinationNames {
                     
                     if (midiDestinationName == String(describing: userSelectedMidiDestinationName)) {
                         activeMidiDestinationIndexes.append(n)
                     }
                     
-                }
+                }*/
             }
             
             if (debug) {
-                print("MIDI -> User Selected:", settings.userSelectedMidiDestinationNames)
+                //print("MIDI -> User Selected:", settings.userSelectedMidiDestinationNames)
                 print("MIDI -> MIDI Dest:    ", midiDestinations)
                 print("MIDI -> MIDI Names:   ", midiDestinationNames)
                 print("MIDI -> MIDI Active:  ", activeMidiDestinationIndexes)

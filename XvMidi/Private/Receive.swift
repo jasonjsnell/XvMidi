@@ -249,7 +249,7 @@ class Receive {
             
             //MARK: note on
             
-            if (rawStatus == 0x90 && settings.midiReceiveEnabled == true){
+            if (rawStatus == 0x90){
                 
                 if (debug) { print("Note on. Channel \(channel) note \(d1) velocity \(d2)") }
                 
@@ -265,7 +265,7 @@ class Receive {
             
             
             //MARK: note off
-            if (rawStatus == 0x80 && settings.midiReceiveEnabled == true){
+            if (rawStatus == 0x80){
                 
                 //target the main thread since we are in the read block, a background thread
                 DispatchQueue.main.async(execute: {
