@@ -99,6 +99,8 @@ class NotificationBlock {
     
     fileprivate func outputCurrentMidiStatus(){
         
+        //TODO: construct the message in the notifcation in helper, not here
+        
         let sync = settings.midiSync
         let clockReceive:String = XvMidiConstants.MIDI_CLOCK_RECEIVE
         let clockSend:String = XvMidiConstants.MIDI_CLOCK_SEND

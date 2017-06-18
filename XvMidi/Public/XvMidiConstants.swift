@@ -29,18 +29,8 @@ public class XvMidiConstants {
     //MARK: - CONSTANTS -
 
     //MARK: Midi Sync
-    
-    //key + values
-    public static let kMidiSync:String = "midiSync"
-    public static let MIDI_CLOCK_RECEIVE:String = "midiClockReceive"
-    public static let MIDI_CLOCK_SEND:String = "midiClockSend"
-    public static let MIDI_CLOCK_NONE:String = "midiClockNone"
-    
-    //labels
-    public static let MIDI_SYNC_LABEL:String = "MIDI Sync"
-    public static let MIDI_CLOCK_RECEIVE_LABEL:String = "Sync to External MIDI Clock"
-    public static let MIDI_CLOCK_SEND_LABEL:String = "Send MIDI Clock"
-    public static let MIDI_CLOCK_NONE_LABEL:String = "None"
-    
+    internal static let MIDI_CLOCK_RECEIVE:String = "midiClockReceive"
+    internal static let MIDI_CLOCK_SEND:String = "midiClockSend"
+    internal static let MIDI_CLOCK_NONE:String = "midiClockNone"
     
 }
