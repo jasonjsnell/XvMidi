@@ -73,6 +73,7 @@ class Send {
    
     //MARK: - ACCESSORS
     internal func getMidiDestinationNames() -> [String] {
+        refreshMidiDestinations()
         return midiDestinationNames
     }
     

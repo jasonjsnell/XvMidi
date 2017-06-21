@@ -199,21 +199,26 @@ public class XvMidi {
     }
     
     //MARK: midi destinations
-    //SetMain -> MIDI IO -> MIDI SEND
+    //AppDel -> MIDI IO -> MIDI SEND
+    
     public func refreshMidiDestinations(){
         
         midiSend.refreshMidiDestinations()
     }
+ 
     
-    //SetMain -> MIDI IO -> MIDI SEND
+    //RootVC -> MIDI IO -> MIDI SEND
     public func getMidiDestinationNames() -> [String] {
+        
         return midiSend.getMidiDestinationNames()
     }
     
     //SetMain -> MIDI IO -> MIDI SEND
+    /*
     public func getActiveMidiDestinationIndexes() -> [Int] {
         return midiSend.getActiveMidiDestinationIndexes()
     }
+    */
 
     //MARK: - RESET 
     
