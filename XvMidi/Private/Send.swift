@@ -77,9 +77,12 @@ class Send {
         return midiDestinationNames
     }
     
+    //TODO: Nix?
+    /*
     internal func getActiveMidiDestinationIndexes() -> [Int] {
         return activeMidiDestinationIndexes
     }
+    */
     
     //MARK: - DESTINATIONS
     
@@ -120,6 +123,7 @@ class Send {
                 
                 //grab midi destination name
                 let midiDestinationName:String = midiDestinationNames[n]
+                print("midiDestinationName", midiDestinationName)
                 
                 //TODO: get user selected midi destinations names from the incoming instrument
                 //loop through user selected names
@@ -209,7 +213,9 @@ class Send {
     //MARK: NOTES
     internal func noteOn(channel:Int, note:UInt8, velocity:UInt8){
         
-        if (noteDebug){ print("MIDI -> note on", channel, note) }
+        if (noteDebug){
+            print("MIDI -> note on", channel, note)
+        }
         
         //convert it to a hex
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
@@ -285,8 +291,12 @@ class Send {
     //MARK: SEND DATA
     fileprivate func sendMidi(data:[UInt8]){
         
+        
+        //TODO: fix hack
+        //activeMidiDestinationIndexes = midiDestinations
+        
         //if there are any active destinations
-        if (activeMidiDestinationIndexes.count > 0){
+        //if (activeMidiDestinationIndexes.count > 0){
             
             //https://en.wikipedia.org/wiki/Nibble#Low_and_high_nibbles
             //http://www.blitter.com/~russtopia/MIDI/~jglatt/tech/midispec/noteon.htm
@@ -311,17 +321,18 @@ class Send {
             packet = MIDIPacketListAdd(packetList, packetByteSize, packet, timeStamp, packetLength, data)
             
             //loop through active destinations and send midi to them all
-            for index in activeMidiDestinationIndexes {
-                let destEndpointRef:MIDIEndpointRef = midiDestinations[index]
+            //TODO: how to caluculate which destinations are active...?
+            for destEndpointRef in midiDestinations {
+               // let destEndpointRef:MIDIEndpointRef = midiDestinations[index]
                 MIDISend(outputPort, destEndpointRef, packetList)
             }
             
             //release
             free(packetList)
 
-        } else {
-            if (debug){ print("MIDI -> Error no active MIDI destinations during sendMidi") }
-        }
+       // } else {
+         //   if (debug){ print("MIDI -> Error no active MIDI destinations during sendMidi") }
+        //}
         
     }
     

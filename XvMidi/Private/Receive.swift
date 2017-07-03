@@ -82,13 +82,16 @@ class Receive {
     
     //MARK: - ACCESSORS
     internal func getMidiSourceNames() -> [String] {
+        refreshMidiSources()
         return midiSourceNames
     }
     
+    //TODO: Nix?
+    /*
     internal func getActiveMidiSourceIndexes() -> [Int] {
         return activeMidiSourceIndexes
     }
-    
+    */
     
     
     //MARK: - SOURCES

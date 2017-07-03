@@ -213,7 +213,14 @@ public class XvMidi {
         return midiSend.getMidiDestinationNames()
     }
     
+    //RootVC -> MIDI IO -> MIDI RECEIVE
+    public func getMidiSourceNames() -> [String] {
+        
+        return midiReceive.getMidiSourceNames()
+    }
+    
     //SetMain -> MIDI IO -> MIDI SEND
+    //TODO: nix?
     /*
     public func getActiveMidiDestinationIndexes() -> [Int] {
         return midiSend.getActiveMidiDestinationIndexes()
