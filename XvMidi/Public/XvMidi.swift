@@ -219,13 +219,6 @@ public class XvMidi {
         return midiReceive.getMidiSourceNames()
     }
     
-    //SetMain -> MIDI IO -> MIDI SEND
-    //TODO: nix?
-    /*
-    public func getActiveMidiDestinationIndexes() -> [Int] {
-        return midiSend.getActiveMidiDestinationIndexes()
-    }
-    */
 
     //MARK: - RESET 
     

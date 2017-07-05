@@ -77,13 +77,6 @@ class Send {
         return midiDestinationNames
     }
     
-    //TODO: Nix?
-    /*
-    internal func getActiveMidiDestinationIndexes() -> [Int] {
-        return activeMidiDestinationIndexes
-    }
-    */
-    
     //MARK: - DESTINATIONS
     
     internal func refreshMidiDestinations() {

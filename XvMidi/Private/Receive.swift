@@ -86,14 +86,6 @@ class Receive {
         return midiSourceNames
     }
     
-    //TODO: Nix?
-    /*
-    internal func getActiveMidiSourceIndexes() -> [Int] {
-        return activeMidiSourceIndexes
-    }
-    */
-    
-    
     //MARK: - SOURCES
     internal func refreshMidiSources(){
         
