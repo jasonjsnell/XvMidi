@@ -116,7 +116,6 @@ class Send {
                 
                 //grab midi destination name
                 let midiDestinationName:String = midiDestinationNames[n]
-                print("midiDestinationName", midiDestinationName)
                 
                 //TODO: get user selected midi destinations names from the incoming instrument
                 //loop through user selected names
