@@ -135,11 +135,12 @@ public class XvMidi {
     
     //MARK: - NOTES
     
-    public func noteOn(channel:Int, note:UInt8, velocity:UInt8){
+    public func noteOn(channel:Int, destinations:[String], note:UInt8, velocity:UInt8){
         
         //convert values to MIDI usable and send out
         midiSend.noteOn(
             channel: channel,
+            destinations: destinations,
             note: note,
             velocity: velocity
         )

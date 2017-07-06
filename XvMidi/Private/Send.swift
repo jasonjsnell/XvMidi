@@ -203,11 +203,11 @@ class Send {
     
     //MARK: -
     //MARK: NOTES
-    internal func noteOn(channel:Int, note:UInt8, velocity:UInt8){
+    internal func noteOn(channel:Int, destinations:[String], note:UInt8, velocity:UInt8){
         
-        if (noteDebug){
-            print("MIDI -> note on", channel, note)
-        }
+        //if (noteDebug){
+            print("MIDI -> note on", channel, destinations, note)
+        //}
         
         //convert it to a hex
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
