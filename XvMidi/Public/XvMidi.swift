@@ -146,10 +146,10 @@ public class XvMidi {
         )
     }
     
-    public func noteOff(channel:Int, note:UInt8){
+    public func noteOff(channel:Int, destinations:[String], note:UInt8){
         
         //convert values to MIDI usable and send out
-        midiSend.noteOff(channel: channel, note: note)
+        midiSend.noteOff(channel: channel, destinations: destinations, note: note)
     }
     
     

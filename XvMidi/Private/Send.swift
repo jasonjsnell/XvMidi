@@ -224,9 +224,11 @@ class Send {
         
     }
     
-    internal func noteOff(channel:Int, note:UInt8){
+    internal func noteOff(channel:Int, destinations:[String], note:UInt8){
         
-        if (noteDebug){ print("MIDI -> note off", channel, note) }
+        //if (noteDebug){
+            print("MIDI -> note off", channel, destinations, note)
+        //}
         
         //convert it to a hex
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
