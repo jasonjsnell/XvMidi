@@ -28,7 +28,6 @@ class Send {
     fileprivate var outputPort = MIDIPortRef()
     fileprivate var midiDestinations:[MIDIEndpointRef] = []
     fileprivate var midiDestinationNames:[String] = []
-    fileprivate var activeMidiDestinationIndexes:[Int] = []
     
     //translations into MIDI friendly data
     
@@ -84,7 +83,7 @@ class Send {
         //reset all
         midiDestinations = []
         midiDestinationNames = []
-        activeMidiDestinationIndexes = []
+      
         
         if (debug) {print("MIDI -> # of destinations: \(MIDIGetNumberOfDestinations())")}
         
@@ -108,32 +107,10 @@ class Send {
                 
             }
             
-            //compare names with array in defaults
-            //when there is a match, add that index to the active index array
-            
-            //loop through midiDestinations names
-            for n:Int in 0 ..< midiDestinationNames.count {
-                
-                //grab midi destination name
-                let midiDestinationName:String = midiDestinationNames[n]
-                
-                //TODO: get user selected midi destinations names from the incoming instrument
-                //loop through user selected names
-                /*
-                for userSelectedMidiDestinationName in settings.userSelectedMidiDestinationNames {
-                    
-                    if (midiDestinationName == String(describing: userSelectedMidiDestinationName)) {
-                        activeMidiDestinationIndexes.append(n)
-                    }
-                    
-                }*/
-            }
             
             if (debug) {
-                //print("MIDI -> User Selected:", settings.userSelectedMidiDestinationNames)
                 print("MIDI -> MIDI Dest:    ", midiDestinations)
                 print("MIDI -> MIDI Names:   ", midiDestinationNames)
-                print("MIDI -> MIDI Active:  ", activeMidiDestinationIndexes)
             }
             
             
@@ -205,9 +182,9 @@ class Send {
     //MARK: NOTES
     internal func noteOn(channel:Int, destinations:[String], note:UInt8, velocity:UInt8){
         
-        //if (noteDebug){
+        if (noteDebug){
             print("MIDI -> note on", channel, destinations, note)
-        //}
+        }
         
         //convert it to a hex
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
@@ -226,9 +203,9 @@ class Send {
     
     internal func noteOff(channel:Int, destinations:[String], note:UInt8){
         
-        //if (noteDebug){
+        if (noteDebug){
             print("MIDI -> note off", channel, destinations, note)
-        //}
+        }
         
         //convert it to a hex
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
@@ -287,10 +264,8 @@ class Send {
         
         
         //TODO: fix hack
-        //activeMidiDestinationIndexes = midiDestinations
-        
+       
         //if there are any active destinations
-        //if (activeMidiDestinationIndexes.count > 0){
             
             //https://en.wikipedia.org/wiki/Nibble#Low_and_high_nibbles
             //http://www.blitter.com/~russtopia/MIDI/~jglatt/tech/midispec/noteon.htm
