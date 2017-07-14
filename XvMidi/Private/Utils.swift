@@ -140,4 +140,13 @@ class Utils {
     }
 
     
+    //MARK: HELPERS
+    
+    class func getArrayOfCommonElements(fromArray1:[String], andArray2:[String]) -> [String]{
+        
+        return [""]
+    }
+
+    
+    
 }

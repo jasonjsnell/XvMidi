@@ -53,7 +53,6 @@ public class XvMidi {
     //called by DefaultsManager when leaving settings panel
     public func initMidi() {
         
-        
         if (debug){
             print("")
             print("MIDI <> Assess system launch")
@@ -229,6 +228,11 @@ public class XvMidi {
     
     public func allNotesOff(){
         midiSend.allNotesOff()
+    }
+    
+    //called by user input when instrument area is cleared via gesture
+    public func allNotesOff(ofChannel:Int){
+        midiSend.allNotesOff(ofChannel: ofChannel)
     }
     
     //called by app delegate if leaving app and background mode is off
