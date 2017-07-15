@@ -205,6 +205,13 @@ public class XvMidi {
         
         midiSend.refreshMidiDestinations()
     }
+    
+    //MARK: midi destinations
+    //AppDel -> MIDI IO -> MIDI RECEIVE
+    public func refreshMidiSources(){
+        
+        midiReceive.refreshMidiSources()
+    }
  
     
     //RootVC -> MIDI IO -> MIDI SEND

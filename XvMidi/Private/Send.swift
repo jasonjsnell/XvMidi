@@ -39,8 +39,8 @@ class Send {
     fileprivate let MIDI_NOTES_MAX:Int = 128
     fileprivate let NOTE_OFF_VELOCITY:UInt8 = 0
     
-    fileprivate let debug:Bool = true
-    fileprivate let noteDebug:Bool = true
+    fileprivate let debug:Bool = false
+    fileprivate let noteDebug:Bool = false
     fileprivate let sysDebug:Bool = false
     
     //MARK: -
@@ -73,7 +73,7 @@ class Send {
    
     //MARK: - ACCESSORS
     internal func getMidiDestinationNames() -> [String] {
-        refreshMidiDestinations()
+        
         return midiDestinationNames
     }
     
@@ -85,8 +85,8 @@ class Send {
         midiDestinations = []
         midiDestinationNames = []
       
-        
         if (debug) {print("MIDI -> # of destinations: \(MIDIGetNumberOfDestinations())")}
+        
         
         //check destinations
         if (MIDIGetNumberOfDestinations() > 0){
@@ -114,8 +114,7 @@ class Send {
     }
     
     
-    //MARK:-
-    //MARK: SEQUENCER
+    //MARK:- SEQUENCER
     internal func sequencerStart(){
         
         if(debug){ print("MIDI -> Sequencer start") }
@@ -162,16 +161,14 @@ class Send {
     }
     
     
-    //MARK:-
-    //MARK: MIDI CLOCK
+    //MARK:- MIDI CLOCK
     //called by sequencer metronome
     internal func sendMidiClock(){
         let clockData:[UInt8] = [0xF8]
         sendMidi(data: clockData)
     }
     
-    //MARK: -
-    //MARK: NOTES
+    //MARK: - NOTES
     internal func noteOn(channel:Int, destinations:[String], note:UInt8, velocity:UInt8){
         
         if (noteDebug){

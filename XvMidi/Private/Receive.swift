@@ -27,14 +27,13 @@ class Receive {
     fileprivate let settings:Settings = Settings.sharedInstance
     
     //ports, endpoints, source
-    fileprivate var inputPort = MIDIPortRef()
-    fileprivate var sourceEndpointRef = MIDIEndpointRef()
+    fileprivate var inputPort:MIDIPortRef = MIDIPortRef()
+    fileprivate var virtualDest:MIDIEndpointRef = MIDIEndpointRef()
     fileprivate var midiSources:[MIDIEndpointRef] = []
     fileprivate var midiSourceNames:[String] = []
-    fileprivate var activeMidiSourceIndexes:[Int] = []
     
-    fileprivate let debug:Bool = false
-    fileprivate let sysDebug:Bool = false
+    fileprivate let debug:Bool = true
+    fileprivate let sysDebug:Bool = true
     
 
     //MARK: -
@@ -48,26 +47,26 @@ class Receive {
         //make sure incoming client is valid
         if (midiClient != 0) {
             
-            if (initInputPort()){
+            if (_initInputPort() && _initVirtualDestination()){
                 
                 refreshMidiSources()
                 
                 if (sysDebug) { print("MIDI <- Launch") }
                 
-                initComplete()
+                _initComplete()
                 
             } else {
                 
                 if (debug) { print("MIDI <- ERROR initializing input port") }
                 
-                initComplete()
+                _initComplete()
             }
             
             
         } else {
             
             if (debug) { print("MIDI <- ERROR client not valid") }
-            initComplete()
+            _initComplete()
             
         }
         
@@ -75,14 +74,14 @@ class Receive {
     }
     
     //when the init is complete, move on to init send
-    fileprivate func initComplete(){
+    fileprivate func _initComplete(){
         if (debug) { print("MIDI <- Init complete") }
         XvMidi.sharedInstance.initMidiSend()
     }
     
     //MARK: - ACCESSORS
     internal func getMidiSourceNames() -> [String] {
-        refreshMidiSources()
+        
         return midiSourceNames
     }
     
@@ -92,7 +91,6 @@ class Receive {
         //reset all
         midiSources = []
         midiSourceNames = []
-        activeMidiSourceIndexes = []
         
         if (debug) {print("MIDI <- # of sources: \(MIDIGetNumberOfSources())")}
         
@@ -107,58 +105,26 @@ class Receive {
                 
                 let midiSource = MIDIGetSource(s)
                 midiSources.append(midiSource)
+                midiSourceNames.append(_getName(forMidiSource: midiSource))
                 
-                var midiSourceName : Unmanaged<CFString>?
-                let status = MIDIObjectGetStringProperty(midiSource, kMIDIPropertyDisplayName, &midiSourceName)
-                if status == noErr {
-                    let midiSourceDisplayName = midiSourceName!.takeRetainedValue() as String
-                    midiSourceNames.append(midiSourceDisplayName)
-                }
-                
+                //connect each port
+                MIDIPortConnectSource(inputPort, midiSource, nil)
+
             }
             
             
-            //temp: assign to first in port
-            sourceEndpointRef = MIDIGetSource(0)
-            MIDIPortConnectSource(inputPort, sourceEndpointRef, nil)
             
-            //not used yet
-            // if there are multiple sources...
-            /*if (MIDIGetNumberOfSources() > 1){
-                
-                //compare names with array in defaults
-                //when there is a match, add that index to the active index array
-                
-                //loop through midiSource names
-                /*for n:Int in 0 ..< midiSourceNames.count {
-                    
-                    //grab midi destination name
-                    let midiSourceName:String = midiSourceNames[n]
-                    
-                    //loop through user selected names
-                    for userSelectedMidiSourceName in settings.userSelectedMidiSourceNames {
-                        
-                        if (midiSourceName == String(describing: userSelectedMidiSourceName)) {
-                            activeMidiSourceIndexes.append(n)
-                        }
-                        
-                    }
-                }*/
-                
-                if (debug) {
-                    //print("MIDI <- User Selected:", settings.userSelectedMidiSourceNames) // not used yet
-                    print("MIDI <- MIDI Sources: ", midiSources)
-                    print("MIDI <- MIDI Names:   ", midiSourceNames)
-                    print("MIDI <- MIDI Active:  ", activeMidiSourceIndexes)
-                }
-                
-            }*/
             
+            if (debug) {
+                print("MIDI <- MIDI Sources: ", midiSources)
+                print("MIDI <- MIDI Names:   ", midiSourceNames)
+                
+            }
+            
+        
         } else {
             
             if (debug) { print("MIDI <- ERROR no sources detected") }
-            
-            initComplete()
             
         }
 
@@ -170,6 +136,14 @@ class Receive {
     // read block for handing incoming messages
     
     fileprivate func readBlock(_ packetList: UnsafePointer<MIDIPacketList>, srcConnRefCon: Optional<UnsafeMutableRawPointer>) -> Void {
+        
+        //TODO: HERE - trying to get the midiSource of the incoming message so its name can be passed along in a post notifiation
+        
+        //TODO: Change Default to Omni?
+        
+        
+        print("sources = ", midiSources)
+        print("srcConnRefCon = ", srcConnRefCon)
         
         let packets = packetList.pointee
         
@@ -203,11 +177,12 @@ class Receive {
                 //target the main thread since we are in the read block, a background thread
                 DispatchQueue.main.async(execute: {
                     
-                    //midi clock
+                    //MARK: - MIDI CLOCK
                     if (status == 0xF8){
                         ReceiveClock.sharedInstance.clockFire(withPacket:packet)
                     }
                     
+                    //MARK: - SEQUENCER
                     //midi start (abelton)
                     if (status == 0xFA){
                         Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveSystemStart, userInfo: nil)
@@ -242,7 +217,7 @@ class Receive {
                 
             }
             
-            //MARK: note on
+            //MARK: - NOTES
             
             if (rawStatus == 0x90){
                 
@@ -284,7 +259,17 @@ class Receive {
         
         if (sysDebug) { print("MIDI <- Shutdown") }
         
-        MIDIPortDisconnectSource(inputPort, sourceEndpointRef)
+        if (MIDIGetNumberOfSources() > 0){
+            
+            //loop through sources and disconnect them
+            
+            for s:Int in 0 ..< MIDIGetNumberOfSources(){
+                
+                let midiSource = MIDIGetSource(s)
+                MIDIPortDisconnectSource(inputPort, midiSource)
+            }
+        }
+        
         MIDIPortDispose(inputPort)
         inputPort = 0
         midiClient = 0
@@ -296,7 +281,7 @@ class Receive {
     
     //MARK:- helper sub funcs
     
-    fileprivate func initInputPort() -> Bool {
+    fileprivate func _initInputPort() -> Bool {
         
         //status var for error handling
         var status = OSStatus(noErr)
@@ -333,6 +318,58 @@ class Receive {
             return true
         }
   
+    }
+    
+    fileprivate func _initVirtualDestination() -> Bool {
+        
+        //status var for error handling
+        var status = OSStatus(noErr)
+        
+        //create input port with read block (that handles the incoming traffic)
+        if (virtualDest == 0){
+        
+            status = MIDIDestinationCreateWithBlock(
+                midiClient,
+                "Repercussion" as CFString,
+                &virtualDest,
+                readBlock)
+            
+            //error checking
+            if status == OSStatus(noErr) {
+                
+                if (sysDebug) { print("MIDI <- Virtual dest successfully created", virtualDest) }
+                return true
+                
+            } else {
+                
+                if (sysDebug) { print("MIDI <- Error creating virtual destination port : \(status)") }
+                
+                if (debug) {
+                    Utils.showError(withStatus: status)
+                }
+                
+                return false
+                
+            }
+          
+        } else {
+            if (sysDebug) { print("MIDI <- Virtual dest already created") }
+            return true
+        }
+        
+    }
+    
+    fileprivate func _getName(forMidiSource:MIDIEndpointRef) -> String {
+        
+        var midiSourceName : Unmanaged<CFString>?
+        let status = MIDIObjectGetStringProperty(forMidiSource, kMIDIPropertyDisplayName, &midiSourceName)
+        if status == noErr {
+            let midiSourceDisplayName = midiSourceName!.takeRetainedValue() as String
+            return midiSourceDisplayName
+        }
+        
+        return ""
+        
     }
 
 
