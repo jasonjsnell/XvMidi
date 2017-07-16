@@ -234,7 +234,8 @@ class Receive {
                     
                     Utils.postNotification(
                         name: XvMidiConstants.kXvMidiReceiveNoteOn,
-                        userInfo: ["channel" : channel, "note" : d1, "velocity" : d2])
+                        userInfo: ["channel" : channel, "note" : d1, "velocity" : d2]
+                    )
                     
                 })
             }

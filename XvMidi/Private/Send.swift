@@ -265,7 +265,6 @@ class Send {
         sendMidi(data: data, toDestinations: midiDestinationNames)
     }
     
-    //TODO: make sure Repercussion is not on the allowed destinations
     fileprivate func sendMidi(data:[UInt8], toDestinations:[String]){
         
         //prep empty array of final destinations
