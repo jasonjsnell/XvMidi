@@ -20,6 +20,9 @@ class Send {
     
     //MARK: - VARS -
     
+    //app id
+    fileprivate var appID:String = ""
+    
     //midi
     fileprivate var midiClient:MIDIClientRef = 0
     fileprivate let settings:Settings = Settings.sharedInstance
@@ -46,7 +49,10 @@ class Send {
     //MARK: -
     //MARK: INIT
    
-    func setup(withClient:MIDIClientRef){
+    internal func setup(withAppID:String, withClient:MIDIClientRef){
+        
+        //app id
+        self.appID = withAppID
         
         //grab local version of client so disconnect can happen in reset func
         midiClient = withClient
@@ -96,8 +102,13 @@ class Send {
             for d:Int in 0 ..< MIDIGetNumberOfDestinations(){
                 
                 let midiDestination = MIDIGetDestination(d)
-                midiDestinations.append(midiDestination)
-                midiDestinationNames.append(_getName(forMidiDestination: midiDestination))
+                let midiDestinationName:String = _getName(forMidiDestination: midiDestination)
+                
+                //add destinations except self (no need to have this app's own virtual destination as a target)
+                if (midiDestinationName != appID) {
+                    midiDestinations.append(midiDestination)
+                    midiDestinationNames.append(midiDestinationName)
+                }
                 
             }
             
@@ -254,6 +265,7 @@ class Send {
         sendMidi(data: data, toDestinations: midiDestinationNames)
     }
     
+    //TODO: make sure Repercussion is not on the allowed destinations
     fileprivate func sendMidi(data:[UInt8], toDestinations:[String]){
         
         //prep empty array of final destinations
@@ -268,7 +280,6 @@ class Send {
             //if that name has an index in the incoming destinations...
             if let _:Int = toDestinations.index(of: midiDestinationName){
                 
-                print("Add:", midiDestinationName)
                 // then add it to the final array
                 finalDestinations.append(midiDestination)
             }
@@ -278,7 +289,7 @@ class Send {
         if (finalDestinations.count == 0){
             
             //check to see if default was selected by user in global settings
-            if let _:Int = toDestinations.index(of: "Default"){
+            if let _:Int = toDestinations.index(of: "Omni"){
                 
                 //if so, are there ANY available active destinations?
                 if (midiDestinations.count > 0){

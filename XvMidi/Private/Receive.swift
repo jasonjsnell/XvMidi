@@ -29,8 +29,7 @@ class Receive {
     //ports, endpoints, source
     fileprivate var inputPort:MIDIPortRef = MIDIPortRef()
     fileprivate var virtualDest:MIDIEndpointRef = MIDIEndpointRef()
-    fileprivate var midiSources:[MIDIEndpointRef] = []
-    fileprivate var midiSourceNames:[String] = []
+    fileprivate var availableMidiSourceNames:[String] = []
     
     fileprivate let debug:Bool = true
     fileprivate let sysDebug:Bool = true
@@ -39,7 +38,7 @@ class Receive {
     //MARK: -
     //MARK: INIT
     
-    internal func setup(withClient:MIDIClientRef){
+    internal func setup(withClient:MIDIClientRef, withSourceNames:[String]){
         
         //grab local version of client so disconnect can happen in reset func
         midiClient = withClient
@@ -49,7 +48,7 @@ class Receive {
             
             if (_initInputPort() && _initVirtualDestination()){
                 
-                refreshMidiSources()
+                setActiveMidiSources(withSourceNames: withSourceNames)
                 
                 if (sysDebug) { print("MIDI <- Launch") }
                 
@@ -80,44 +79,59 @@ class Receive {
     }
     
     //MARK: - ACCESSORS
-    internal func getMidiSourceNames() -> [String] {
+    internal func getAvailableMidiSourceNames() -> [String] {
         
-        return midiSourceNames
+        return availableMidiSourceNames
     }
     
     //MARK: - SOURCES
-    internal func refreshMidiSources(){
+    internal func setActiveMidiSources(withSourceNames:[String]){
         
         //reset all
-        midiSources = []
-        midiSourceNames = []
+        _disconnectAllSources()
+        availableMidiSourceNames = []
         
         if (debug) {print("MIDI <- # of sources: \(MIDIGetNumberOfSources())")}
         
+        //check for omni
+        var omni:Bool = false
+        if let _:Int = withSourceNames.index(of: "Omni") {
+            omni = true
+        }
         
         //check sources
         
         if (MIDIGetNumberOfSources() > 0){
             
             //loop through sources and save sources and names in array
-            
+        
             for s:Int in 0 ..< MIDIGetNumberOfSources(){
                 
-                let midiSource = MIDIGetSource(s)
-                midiSources.append(midiSource)
-                midiSourceNames.append(_getName(forMidiSource: midiSource))
+                let midiSource:MIDIEndpointRef = MIDIGetSource(s)
+                let midiSourceName:String = _getName(forMidiSource: midiSource)
+                availableMidiSourceNames.append(midiSourceName)
                 
-                //connect each port
-                MIDIPortConnectSource(inputPort, midiSource, nil)
-
+                //if omni, add all
+                if (omni) {
+                    
+                    MIDIPortConnectSource(inputPort, midiSource, nil)
+                    print("MIDI <- Add all sources")
+                    
+                } else {
+                    
+                    //connect only sources from incoming list
+                    if let _:Int = withSourceNames.index(of: midiSourceName) {
+                        
+                        MIDIPortConnectSource(inputPort, midiSource, nil)
+                        print("MIDI <- Add", midiSourceName)
+                        
+                    }
+                }
             }
             
-            
-            
-            
+    
             if (debug) {
-                print("MIDI <- MIDI Sources: ", midiSources)
-                print("MIDI <- MIDI Names:   ", midiSourceNames)
+                print("MIDI <- MIDI Available names:   ", availableMidiSourceNames)
                 
             }
             
@@ -136,14 +150,6 @@ class Receive {
     // read block for handing incoming messages
     
     fileprivate func readBlock(_ packetList: UnsafePointer<MIDIPacketList>, srcConnRefCon: Optional<UnsafeMutableRawPointer>) -> Void {
-        
-        //TODO: HERE - trying to get the midiSource of the incoming message so its name can be passed along in a post notifiation
-        
-        //TODO: Change Default to Omni?
-        
-        
-        print("sources = ", midiSources)
-        print("srcConnRefCon = ", srcConnRefCon)
         
         let packets = packetList.pointee
         
@@ -273,8 +279,7 @@ class Receive {
         MIDIPortDispose(inputPort)
         inputPort = 0
         midiClient = 0
-        midiSources = []
-        midiSourceNames = []
+        availableMidiSourceNames = []
         
     }
     
@@ -371,6 +376,20 @@ class Receive {
         return ""
         
     }
+    
+    
+    
+    fileprivate func _disconnectAllSources(){
+        
+        for s:Int in 0 ..< MIDIGetNumberOfSources(){
+            
+            let midiSource:MIDIEndpointRef = MIDIGetSource(s)
+            MIDIPortDisconnectSource(inputPort, midiSource)
+            
+        }
+    }
+    
+    
 
 
 }

@@ -35,6 +35,9 @@ public class XvMidi {
     
     //MARK:- VARIABLES -
     
+    //app id
+    fileprivate var appID:String = ""
+    
     //midi objects
     fileprivate let midiSend:Send = Send.sharedInstance
     fileprivate let midiReceive:Receive = Receive.sharedInstance
@@ -51,12 +54,14 @@ public class XvMidi {
     //MARK: INIT
     //called by DefaultsManager on app launch
     //called by DefaultsManager when leaving settings panel
-    public func initMidi() {
+    public func initMidi(withAppID:String, withSourceNames:[String]) {
         
         if (debug){
             print("")
             print("MIDI <> Assess system launch")
         }
+        
+        self.appID = withAppID
         
         //TODO: Check audiobus here
         //if....
@@ -103,7 +108,7 @@ public class XvMidi {
             if status == OSStatus(noErr) {
                 
                 //start with receive (send comes after receive is complete or declined
-                initMidiReceive()
+                initMidiReceive(withSourceNames: withSourceNames)
                 
             }
         /*
@@ -208,9 +213,9 @@ public class XvMidi {
     
     //MARK: midi destinations
     //AppDel -> MIDI IO -> MIDI RECEIVE
-    public func refreshMidiSources(){
+    public func setActiveMidiSources(withSourceNames:[String]){
         
-        midiReceive.refreshMidiSources()
+        midiReceive.setActiveMidiSources(withSourceNames: withSourceNames)
     }
  
     
@@ -221,9 +226,9 @@ public class XvMidi {
     }
     
     //RootVC -> MIDI IO -> MIDI RECEIVE
-    public func getMidiSourceNames() -> [String] {
+    public func getAvailableMidiSourceNames() -> [String] {
         
-        return midiReceive.getMidiSourceNames()
+        return midiReceive.getAvailableMidiSourceNames()
     }
     
 
@@ -262,16 +267,16 @@ public class XvMidi {
     
     //MARK: INIT MIDI RECEIVE
     //called locally
-    fileprivate func initMidiReceive(){
+    fileprivate func initMidiReceive(withSourceNames:[String]){
         
-        midiReceive.setup(withClient: midiClient)
+        midiReceive.setup(withClient: midiClient, withSourceNames: withSourceNames)
     }
     
     //MARK: INIT MIDI SEND
     //called by MidiReceive when its setup is complete
     internal func initMidiSend(){
         
-        midiSend.setup(withClient: midiClient)
+        midiSend.setup(withAppID:appID, withClient: midiClient)
     }
     
 }
