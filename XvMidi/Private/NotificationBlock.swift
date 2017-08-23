@@ -103,7 +103,7 @@ class NotificationBlock {
         let clockReceive:String = XvMidiConstants.MIDI_CLOCK_RECEIVE
         let clockSend:String = XvMidiConstants.MIDI_CLOCK_SEND
         
-        var msgStr:String = "MIDI CONNECT"
+        var msgStr:String = "CONNECT"
         
         var clockStr:String = String()
         if (sync == clockSend){
