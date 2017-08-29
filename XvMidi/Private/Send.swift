@@ -42,9 +42,9 @@ class Send {
     fileprivate let MIDI_NOTES_MAX:Int = 128
     fileprivate let NOTE_OFF_VELOCITY:UInt8 = 0
     
-    fileprivate let debug:Bool = false
+    fileprivate let debug:Bool = true
     fileprivate let noteDebug:Bool = false
-    fileprivate let sysDebug:Bool = false
+    fileprivate let sysDebug:Bool = true
     
     //MARK: -
     //MARK: INIT
@@ -91,7 +91,7 @@ class Send {
         midiDestinations = []
         midiDestinationNames = []
       
-        if (debug) {print("MIDI -> # of destinations: \(MIDIGetNumberOfDestinations())")}
+        if (debug) {print("MIDI -> Refresh, # of destinations: \(MIDIGetNumberOfDestinations())")}
         
         
         //check destinations
@@ -287,18 +287,20 @@ class Send {
         //if there are no final destinations
         if (finalDestinations.count == 0){
             
-            //check to see if default was selected by user in global settings
-            if let _:Int = toDestinations.index(of: "Omni"){
+            //check to see if omni was selected by user in global settings
+            if let _:Int = toDestinations.index(of: XvMidiConstants.MIDI_DESTINATION_OMNI){
                 
-                //if so, are there ANY available active destinations?
-                if (midiDestinations.count > 0){
-                    
-                    //add first midi destination as the default
-                    finalDestinations.append(midiDestinations[0])
-                }
+                //if so, all destinations are the target
+                finalDestinations = midiDestinations
+                
+            } else {
+                
+                Utils.postNotification(
+                    name: XvMidiConstants.kXvMidiNoDestinationError,
+                    userInfo: nil
+                )
             }
         }
-        
         
         //if there are any destinations
         if (finalDestinations.count > 0){
@@ -326,6 +328,10 @@ class Send {
             packet = MIDIPacketListAdd(packetList, packetByteSize, packet, timeStamp, packetLength, data)
             
             //loop through destinations and send midi to them all
+            
+            if (noteDebug){
+                print("MIDI -> destinations:", finalDestinations)
+            }
             
             for destEndpointRef in finalDestinations {
                 

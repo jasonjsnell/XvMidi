@@ -26,11 +26,17 @@ public class XvMidiConstants {
     //MARK: setup notifications
     public static let kXvMidiSetupChanged:String = "kXvMidiSetupChanged"
     
+    //MARK: destinations
+    public static let kXvMidiNoDestinationError:String = "kXvMidiNoDestinationError"
+    
     //MARK: - CONSTANTS -
 
     //MARK: Midi Sync
     internal static let MIDI_CLOCK_RECEIVE:String = "midiClockReceive"
     internal static let MIDI_CLOCK_SEND:String = "midiClockSend"
     internal static let MIDI_CLOCK_NONE:String = "midiClockNone"
+    
+    public static let MIDI_DESTINATION_OMNI:String = "Omni"
+    public static let MIDI_SOURCE_OMNI:String = "Omni"
     
 }

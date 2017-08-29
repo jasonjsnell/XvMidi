@@ -111,20 +111,10 @@ public class XvMidi {
                 initMidiReceive(withSourceNames: withSourceNames)
                 
             }
-        /*
-        } else {
-            if (debug){ print("MIDI <> MIDI not enabled in user prefs, shutdown system") }
-            shutdown()
-        }
-        */
         
     }
     
     //MARK: - ACCESSORS
-    //checked by app delegate
-    public func isActive() -> Bool {
-        return active
-    }
     
     public func getVelocity(fromVolume:Float) -> UInt8 {
         return Utils.getVelocity(fromVolume: fromVolume)

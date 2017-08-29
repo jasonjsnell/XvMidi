@@ -95,7 +95,7 @@ class Receive {
         
         //check for omni
         var omni:Bool = false
-        if let _:Int = withSourceNames.index(of: "Omni") {
+        if let _:Int = withSourceNames.index(of: XvMidiConstants.MIDI_SOURCE_OMNI) {
             omni = true
         }
         
