@@ -31,8 +31,8 @@ class Receive {
     fileprivate var virtualDest:MIDIEndpointRef = MIDIEndpointRef()
     fileprivate var availableMidiSourceNames:[String] = []
     
-    fileprivate let debug:Bool = true
-    fileprivate let sysDebug:Bool = true
+    fileprivate let debug:Bool = false
+    fileprivate let sysDebug:Bool = false
     
 
     //MARK: -
