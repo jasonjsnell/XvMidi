@@ -209,6 +209,9 @@ class Receive {
                     
                     //midi stop (ableton, maschine)
                     if (status == 0xFC){
+                        
+                        ReceiveClock.sharedInstance.active = false //clock is now in inactive state
+                        
                         Utils.postNotification(
                             name: XvMidiConstants.kXvMidiReceiveSystemStop,
                             userInfo: nil)

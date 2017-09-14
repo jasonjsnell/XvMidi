@@ -120,6 +120,10 @@ public class XvMidi {
         return Utils.getVelocity(fromVolume: fromVolume)
     }
     
+    public func isReceivingExternalClock() -> Bool {
+        return ReceiveClock.sharedInstance.active
+    }
+    
     //MARK: - SETTERS
     
     //setters

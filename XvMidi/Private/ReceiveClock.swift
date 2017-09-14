@@ -30,11 +30,20 @@ class ReceiveClock{
     fileprivate var previousTempos:[Double] = []
     fileprivate let TEMPO_SAMPLE_MAX:Int = 50
     
+    //is clock being received?
+    fileprivate var _active:Bool = false
+    internal var active:Bool {
+        get { return _active }
+        set { _active = newValue }
+    }
+    
     internal var debug:Bool = false
     
     
     //MARK: - INTERNAL -
     internal func clockFire(withPacket:MIDIPacket){
+        
+        _active = true
         
         //if so, send notification
         Utils.postNotification(
