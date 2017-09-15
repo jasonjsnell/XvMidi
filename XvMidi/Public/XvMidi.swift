@@ -43,6 +43,9 @@ public class XvMidi {
     fileprivate let midiReceive:Receive = Receive.sharedInstance
     fileprivate var midiClient = MIDIClientRef()
     fileprivate let settings:Settings = Settings.sharedInstance
+
+    fileprivate var _midiSourceNames:[String] = []
+    fileprivate var _midiDestinationNames:[String] = []
     
     //bools
     fileprivate var active:Bool = false
@@ -54,21 +57,23 @@ public class XvMidi {
     //MARK: INIT
     //called by DefaultsManager on app launch
     //called by DefaultsManager when leaving settings panel
-    public func initMidi(withAppID:String, withSourceNames:[String]) {
+    public func initMidi(withAppID:String, withSourceNames:[String], withDestinationNames:[String]) -> Bool {
         
         if (debug){
             print("")
             print("MIDI <> Assess system launch")
         }
         
+        //capture incoming vars
         self.appID = withAppID
+        self._midiSourceNames = withSourceNames
+        self._midiDestinationNames = withDestinationNames
         
         //TODO: Check audiobus here
         //if....
         
             //activate midi interface
-            
-            
+        
             var status = OSStatus(noErr)
             
             if (!active){
@@ -95,23 +100,46 @@ public class XvMidi {
                     
                     //system is now active
                     active = true
-                    
                     if (debug){ print("MIDI <> Session now active")}
                     
+                    //if init midi receive and send are also successful...
+                    if (initMidiReceive(withSourceNames: _midiSourceNames) &&
+                        initMidiSend(withDestinationNames: _midiDestinationNames)) {
+                        
+                        //then the overall launch is a success
+                        return true
+                    } else {
+                        
+                        //else error
+                        print("MIDI <> ERROR initializing send or receive")
+                        return false
+                    }
+                    
+                } else {
+                    
+                    // error occurred, midi session was not created
+                    print("MIDI <> ERROR during MIDIClientCreateWithBlock")
+                    return false
                 }
                 
             } else {
+                
                 if (debug){ print("MIDI <> Session already activated") }
-            }
-            
-            //if no error, move on to init midi receive
-            if status == OSStatus(noErr) {
-                
-                //start with receive (send comes after receive is complete or declined
-                initMidiReceive(withSourceNames: withSourceNames)
-                
+                return true
             }
         
+    }
+    
+    //MARK: INIT MIDI RECEIVE
+    public func initMidiReceive(withSourceNames:[String]) -> Bool {
+        
+        return midiReceive.setup(withClient: midiClient, withSourceNames: withSourceNames)
+    }
+    
+    //MARK: INIT MIDI SEND
+    public func initMidiSend(withDestinationNames:[String]) -> Bool {
+        
+        return midiSend.setup(withAppID:appID, withClient: midiClient, withDestinatonNames: withDestinationNames)
     }
     
     //MARK: - ACCESSORS
@@ -205,18 +233,23 @@ public class XvMidi {
         midiSend.refreshMidiDestinations()
     }
     
-    //MARK: midi destinations
+    
+    //RootVC -> MIDI IO -> MIDI SEND
+    public func getAvailableMidiDestinationNames() -> [String] {
+        
+        return midiSend.getAvailableMidiDestinationNames()
+    }
+    
+    public func setActiveGlobalMidiDestinations(withDestinationNames:[String]){
+        
+        midiSend.setActiveGlobalMidiDestinations(withDestinationNames: withDestinationNames)
+    }
+    
+    //MARK: midi sources
     //AppDel -> MIDI IO -> MIDI RECEIVE
     public func setActiveMidiSources(withSourceNames:[String]){
         
         midiReceive.setActiveMidiSources(withSourceNames: withSourceNames)
-    }
- 
-    
-    //RootVC -> MIDI IO -> MIDI SEND
-    public func getMidiDestinationNames() -> [String] {
-        
-        return midiSend.getMidiDestinationNames()
     }
     
     //RootVC -> MIDI IO -> MIDI RECEIVE
@@ -253,24 +286,6 @@ public class XvMidi {
         midiClient = 0
         active = false
         
-    }
-
-
-    
-    //MARK: - PRIVATE API -
-    
-    //MARK: INIT MIDI RECEIVE
-    //called locally
-    fileprivate func initMidiReceive(withSourceNames:[String]){
-        
-        midiReceive.setup(withClient: midiClient, withSourceNames: withSourceNames)
-    }
-    
-    //MARK: INIT MIDI SEND
-    //called by MidiReceive when its setup is complete
-    internal func initMidiSend(){
-        
-        midiSend.setup(withAppID:appID, withClient: midiClient)
     }
     
 }

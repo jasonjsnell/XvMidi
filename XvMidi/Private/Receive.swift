@@ -38,7 +38,7 @@ class Receive {
     //MARK: -
     //MARK: INIT
     
-    internal func setup(withClient:MIDIClientRef, withSourceNames:[String]){
+    internal func setup(withClient:MIDIClientRef, withSourceNames:[String]) -> Bool {
         
         //grab local version of client so disconnect can happen in reset func
         midiClient = withClient
@@ -52,30 +52,22 @@ class Receive {
                 
                 if (sysDebug) { print("MIDI <- Launch") }
                 
-                _initComplete()
+                return true
                 
             } else {
                 
-                if (debug) { print("MIDI <- ERROR initializing input port") }
+                print("MIDI <- ERROR initializing input port")
+                return false
                 
-                _initComplete()
             }
             
             
         } else {
             
-            if (debug) { print("MIDI <- ERROR client not valid") }
-            _initComplete()
+            print("MIDI <- ERROR client not valid")
+            return false
             
         }
-        
-        
-    }
-    
-    //when the init is complete, move on to init send
-    fileprivate func _initComplete(){
-        if (debug) { print("MIDI <- Init complete") }
-        XvMidi.sharedInstance.initMidiSend()
     }
     
     //MARK: - ACCESSORS

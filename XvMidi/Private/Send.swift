@@ -29,8 +29,9 @@ class Send {
     
     //ports, endpoints, destinations
     fileprivate var outputPort = MIDIPortRef()
-    fileprivate var midiDestinations:[MIDIEndpointRef] = []
-    fileprivate var midiDestinationNames:[String] = []
+    fileprivate var availableMidiDestinations:[MIDIEndpointRef] = [] //all available destinations
+    fileprivate var availableMidiDestinationNames:[String] = []
+    fileprivate var activeGlobalMidiDestinationNames:[String] = [] //destinations selected by user
     
     //translations into MIDI friendly data
     
@@ -43,13 +44,13 @@ class Send {
     fileprivate let NOTE_OFF_VELOCITY:UInt8 = 0
     
     fileprivate let debug:Bool = false
-    fileprivate let noteDebug:Bool = false
+    fileprivate let noteDebug:Bool = true
     fileprivate let sysDebug:Bool = false
     
     //MARK: -
     //MARK: INIT
    
-    internal func setup(withAppID:String, withClient:MIDIClientRef){
+    internal func setup(withAppID:String, withClient:MIDIClientRef, withDestinatonNames:[String]) -> Bool {
         
         //app id
         self.appID = withAppID
@@ -63,33 +64,66 @@ class Send {
             //if output port is successfully initialized...
             if (_initOutputPort()){
                 
-                refreshMidiDestinations()
+                //sets the user selected destinations
+                setActiveGlobalMidiDestinations(withDestinationNames: withDestinatonNames)
                 
                 if (sysDebug) { print("MIDI -> Launch") }
+                return true
                 
             } else {
-                if (debug) { print("MIDI -> ERROR initializing output port") }
+                
+                print("MIDI -> ERROR initializing output port")
+                return false
             }
             
         } else {
-            if (debug) { print("MIDI -> ERROR client not valid") }
+            
+            print("MIDI -> ERROR client not valid")
+            return false
         }
         
     }
    
-    //MARK: - ACCESSORS
-    internal func getMidiDestinationNames() -> [String] {
+    //MARK: - DESTINATIONS
+    internal func getAvailableMidiDestinationNames() -> [String] {
         
-        return midiDestinationNames
+        return availableMidiDestinationNames
     }
     
-    //MARK: - DESTINATIONS
+    internal func setActiveGlobalMidiDestinations(withDestinationNames:[String]){
+        
+        //clear array
+        activeGlobalMidiDestinationNames = []
+        
+        //refresh list of destinations from MIDI system
+        refreshMidiDestinations()
+        
+        //loop through incoming names
+        for name in withDestinationNames {
+            
+            //if the name is omni, then add all the names and stop the loop
+            if (name == XvMidiConstants.MIDI_DESTINATION_OMNI){
+                
+                activeGlobalMidiDestinationNames = availableMidiDestinationNames
+                break
+            }
+            
+            //if the name is in the available midi destinations
+            if availableMidiDestinationNames.contains(name){
+                
+                //add it to the active list
+                activeGlobalMidiDestinationNames.append(name)
+            }
+            
+        }
+        
+    }
     
     internal func refreshMidiDestinations() {
         
         //reset all
-        midiDestinations = []
-        midiDestinationNames = []
+        availableMidiDestinations = []
+        availableMidiDestinationNames = []
       
         if (debug) {print("MIDI -> Refresh, # of destinations: \(MIDIGetNumberOfDestinations())")}
         
@@ -106,15 +140,15 @@ class Send {
                 
                 //add destinations except self (no need to have this app's own virtual destination as a target)
                 if (midiDestinationName != appID) {
-                    midiDestinations.append(midiDestination)
-                    midiDestinationNames.append(midiDestinationName)
+                    availableMidiDestinations.append(midiDestination)
+                    availableMidiDestinationNames.append(midiDestinationName)
                 }
                 
             }
             
             if (debug) {
-                print("MIDI -> MIDI Dest:    ", midiDestinations)
-                print("MIDI -> MIDI Names:   ", midiDestinationNames)
+                print("MIDI -> MIDI Dest:    ", availableMidiDestinations)
+                print("MIDI -> MIDI Names:   ", availableMidiDestinationNames)
             }
             
             
@@ -132,7 +166,7 @@ class Send {
         
         //MIDI Start command
         let midiData : [UInt8] = [0xFA]
-        sendMidi(data: midiData)
+        sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
         
     }
     
@@ -142,7 +176,7 @@ class Send {
         
         //MIDI Stop command
         let midiData : [UInt8] = [0xFC]
-        sendMidi(data: midiData)
+        sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
         
     }
     
@@ -166,7 +200,7 @@ class Send {
         if(debug){ print("MIDI -> Sequencer move to", sixteenthPositionByte, phrasePositionByte) }
         
         let midiData : [UInt8] = [0xF2, sixteenthPositionByte, phrasePositionByte]
-        sendMidi(data: midiData)
+        sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
         
         
     }
@@ -176,7 +210,7 @@ class Send {
     //called by sequencer metronome
     internal func sendMidiClock(){
         let clockData:[UInt8] = [0xF8]
-        sendMidi(data: clockData)
+        sendMidi(data: clockData, toDestinations: activeGlobalMidiDestinationNames)
     }
     
     //MARK: - NOTES
@@ -251,7 +285,7 @@ class Send {
             //midi data = status (midi command + channel), note number, velocity
             let midiData : [UInt8] = [noteOffByte, UInt8(noteNum), NOTE_OFF_VELOCITY]
             
-            sendMidi(data: midiData)
+            sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
             
         }
 
@@ -260,10 +294,6 @@ class Send {
     
     //MARK: -
     //MARK: SEND DATA
-    fileprivate func sendMidi(data:[UInt8]) {
-
-        sendMidi(data: data, toDestinations: midiDestinationNames)
-    }
     
     fileprivate func sendMidi(data:[UInt8], toDestinations:[String]){
         
@@ -271,7 +301,7 @@ class Send {
         var finalDestinations:[MIDIEndpointRef] = []
         
         //loop through available destinations
-        for midiDestination in midiDestinations {
+        for midiDestination in availableMidiDestinations {
             
             //get name for each
             let midiDestinationName:String = _getName(forMidiDestination: midiDestination)
@@ -291,7 +321,7 @@ class Send {
             if let _:Int = toDestinations.index(of: XvMidiConstants.MIDI_DESTINATION_OMNI){
                 
                 //if so, all destinations are the target
-                finalDestinations = midiDestinations
+                finalDestinations = availableMidiDestinations
                 
             } else {
                 
@@ -362,8 +392,9 @@ class Send {
         MIDIPortDispose(outputPort)
         outputPort = 0
         midiClient = 0
-        midiDestinations = []
-        midiDestinationNames = []
+        availableMidiDestinations = []
+        availableMidiDestinationNames = []
+        activeGlobalMidiDestinationNames = []
     }
 
     //MARK:- helper sub funcs
