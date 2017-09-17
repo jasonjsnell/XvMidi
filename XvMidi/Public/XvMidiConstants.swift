@@ -29,6 +29,9 @@ public class XvMidiConstants {
     //MARK: destinations
     public static let kXvMidiNoDestinationError:String = "kXvMidiNoDestinationError"
     
+    //MARK: bypass
+    public static let kXvMidiSendBypass:String = "kXvMidiSendBypass"
+    
     //MARK: - CONSTANTS -
 
     //MARK: Midi Sync

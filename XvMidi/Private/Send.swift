@@ -20,6 +20,13 @@ class Send {
     
     //MARK: - VARS -
     
+    //bypass MIDI core sendMidi when audiobus midi functionality is on
+    fileprivate var _bypass:Bool = false
+    public var bypass:Bool {
+        get {return _bypass}
+        set {_bypass = newValue}
+    }
+    
     //app id
     fileprivate var appID:String = ""
     
@@ -295,10 +302,9 @@ class Send {
     //MARK: -
     //MARK: SEND DATA
     
-    fileprivate func sendMidi(data:[UInt8], toDestinations:[String]){
+    fileprivate func _getActiveDestinations(targetDestinationNames:[String]) -> [MIDIEndpointRef] {
         
-        //prep empty array of final destinations
-        var finalDestinations:[MIDIEndpointRef] = []
+        var activeDestinations:[MIDIEndpointRef] = []
         
         //loop through available destinations
         for midiDestination in availableMidiDestinations {
@@ -307,21 +313,21 @@ class Send {
             let midiDestinationName:String = _getName(forMidiDestination: midiDestination)
             
             //if that name has an index in the incoming destinations...
-            if let _:Int = toDestinations.index(of: midiDestinationName){
+            if let _:Int = targetDestinationNames.index(of: midiDestinationName){
                 
                 // then add it to the final array
-                finalDestinations.append(midiDestination)
+                activeDestinations.append(midiDestination)
             }
         }
         
         //if there are no final destinations
-        if (finalDestinations.count == 0){
+        if (activeDestinations.count == 0){
             
             //check to see if omni was selected by user in global settings
-            if let _:Int = toDestinations.index(of: XvMidiConstants.MIDI_DESTINATION_OMNI){
+            if let _:Int = targetDestinationNames.index(of: XvMidiConstants.MIDI_DESTINATION_OMNI){
                 
                 //if so, all destinations are the target
-                finalDestinations = availableMidiDestinations
+                activeDestinations = availableMidiDestinations
                 
             } else {
                 
@@ -332,8 +338,16 @@ class Send {
             }
         }
         
+        return activeDestinations
+    }
+    
+    fileprivate func sendMidi(data:[UInt8], toDestinations:[String]){
+        
+        //prep empty array of final destinations
+        let activeDestinations:[MIDIEndpointRef] = _getActiveDestinations(targetDestinationNames: toDestinations)
+        
         //if there are any destinations
-        if (finalDestinations.count > 0){
+        if (activeDestinations.count > 0){
             
             //https://en.wikipedia.org/wiki/Nibble#Low_and_high_nibbles
             //http://www.blitter.com/~russtopia/MIDI/~jglatt/tech/midispec/noteon.htm
@@ -355,17 +369,40 @@ class Send {
             let timeStamp:MIDITimeStamp = 0
             
             //add packet data to the packet list
-            packet = MIDIPacketListAdd(packetList, packetByteSize, packet, timeStamp, packetLength, data)
+            packet = MIDIPacketListAdd(
+                packetList,
+                packetByteSize,
+                packet,
+                timeStamp,
+                packetLength,
+                data
+            )
             
-            //loop through destinations and send midi to them all
-            
-            if (noteDebug){
-                print("MIDI -> destinations:", finalDestinations)
-            }
-            
-            for destEndpointRef in finalDestinations {
+            if (!_bypass){
                 
-                MIDISend(outputPort, destEndpointRef, packetList)
+                if (noteDebug){
+                    print("MIDI -> destinations:", activeDestinations)
+                }
+                
+                //normal - send midi out via CoreMIDI
+                //loop through destinations and send midi to them all
+                
+                for destEndpointRef in activeDestinations {
+                    
+                    MIDISend(outputPort, destEndpointRef, packetList)
+                }
+                
+            } else {
+                
+                if (noteDebug){
+                    print("MIDI -> Audiobus")
+                }
+                
+                //audiobus bypass - send packetlist out through a notification
+                Utils.postNotification(
+                    name: XvMidiConstants.kXvMidiSendBypass,
+                    userInfo: ["packetList" : packetList]
+                )
             }
             
             //release

@@ -47,6 +47,16 @@ public class XvMidi {
     fileprivate var _midiSourceNames:[String] = []
     fileprivate var _midiDestinationNames:[String] = []
     
+    //bypass when audiobus MIDI functionality is on
+    fileprivate var _bypass:Bool = false
+    public var bypass:Bool {
+        get {return _bypass}
+        set {
+            _bypass = newValue
+            midiSend.bypass = newValue //pass down to child
+        }
+    }
+    
     //bools
     fileprivate var active:Bool = false
     fileprivate var debug:Bool = true
@@ -69,65 +79,61 @@ public class XvMidi {
         self._midiSourceNames = withSourceNames
         self._midiDestinationNames = withDestinationNames
         
-        //TODO: Check audiobus here
-        //if....
+        //activate midi interface
         
-            //activate midi interface
+        var status = OSStatus(noErr)
         
-            var status = OSStatus(noErr)
+        if (!active){
             
-            if (!active){
-                
-                //MARK: INIT SESSION
-                //only init if system is not active
-                //this allows the device to show up in NetWork Session devices
-                //http://stackoverflow.com/questions/34258035/xcode-iphone-simulator-not-showing-up-in-audio-midi-setup-midi-network-setup
-                
-                let session = MIDINetworkSession.default()
-                session.isEnabled = true
-                session.connectionPolicy = MIDINetworkConnectionPolicy.anyone
-                
-                
-                //MARK: INIT MIDI CLIENT
-                //create notifcation blocks for watching messages
-                let notifyBlock: MIDINotifyBlock = NotificationBlock.sharedInstance.notifyBlock
-                
-                //create MIDI client
-                status = MIDIClientCreateWithBlock("com.jasonjsnell.refraktions.MyMIDIClient" as CFString, &midiClient, notifyBlock)
+            //MARK: INIT SESSION
+            //only init if system is not active
+            //this allows the device to show up in NetWork Session devices
+            //http://stackoverflow.com/questions/34258035/xcode-iphone-simulator-not-showing-up-in-audio-midi-setup-midi-network-setup
             
-                //if client is created...
-                if status == OSStatus(noErr) {
+            let session = MIDINetworkSession.default()
+            session.isEnabled = true
+            session.connectionPolicy = MIDINetworkConnectionPolicy.anyone
+            
+            
+            //MARK: INIT MIDI CLIENT
+            //create notifcation blocks for watching messages
+            let notifyBlock: MIDINotifyBlock = NotificationBlock.sharedInstance.notifyBlock
+            
+            //create MIDI client
+            status = MIDIClientCreateWithBlock("com.jasonjsnell.refraktions.MyMIDIClient" as CFString, &midiClient, notifyBlock)
+            
+            //if client is created...
+            if status == OSStatus(noErr) {
+                
+                //system is now active
+                active = true
+                if (debug){ print("MIDI <> Session now active")}
+                
+                //if init midi receive and send are also successful...
+                if (initMidiReceive(withSourceNames: _midiSourceNames) &&
+                    initMidiSend(withDestinationNames: _midiDestinationNames)) {
                     
-                    //system is now active
-                    active = true
-                    if (debug){ print("MIDI <> Session now active")}
-                    
-                    //if init midi receive and send are also successful...
-                    if (initMidiReceive(withSourceNames: _midiSourceNames) &&
-                        initMidiSend(withDestinationNames: _midiDestinationNames)) {
-                        
-                        //then the overall launch is a success
-                        return true
-                    } else {
-                        
-                        //else error
-                        print("MIDI <> ERROR initializing send or receive")
-                        return false
-                    }
-                    
+                    //then the overall launch is a success
+                    return true
                 } else {
                     
-                    // error occurred, midi session was not created
-                    print("MIDI <> ERROR during MIDIClientCreateWithBlock")
+                    //else error
+                    print("MIDI <> ERROR initializing send or receive")
                     return false
                 }
                 
             } else {
                 
-                if (debug){ print("MIDI <> Session already activated") }
-                return true
+                // error occurred, midi session was not created
+                print("MIDI <> ERROR during MIDIClientCreateWithBlock")
+                return false
             }
-        
+            
+        } else {
+            
+            if (debug){ print("MIDI <> Session already activated") }
+            return true
+        }        
     }
     
     //MARK: INIT MIDI RECEIVE
