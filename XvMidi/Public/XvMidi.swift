@@ -53,7 +53,8 @@ public class XvMidi {
         get {return _bypass}
         set {
             _bypass = newValue
-            midiSend.bypass = newValue //pass down to child
+            midiSend.bypass = newValue //pass down to children
+            midiReceive.bypass = newValue
         }
     }
     
@@ -161,6 +162,7 @@ public class XvMidi {
     //MARK: - SETTERS
     
     //setters
+    //TODO: change to variable
     public func set(midiSync:String){
         settings.set(midiSync: midiSync)
     }
@@ -264,7 +266,14 @@ public class XvMidi {
         return midiReceive.getAvailableMidiSourceNames()
     }
     
-
+    
+    //MARK: - RECEIVE BLOCK
+    //called by audiobus receive block
+    public func process(packetList:UnsafePointer<MIDIPacketList>){
+        
+        midiReceive.process(packetList: packetList)
+    }
+    
     //MARK: - RESET 
     
     //called by user input

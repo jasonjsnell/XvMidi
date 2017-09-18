@@ -23,6 +23,13 @@ class Receive {
     
     //MARK: - VARS -
     
+    //bypass MIDI core receive when audiobus midi functionality is on
+    fileprivate var _bypass:Bool = false
+    public var bypass:Bool {
+        get {return _bypass}
+        set {_bypass = newValue}
+    }
+    
     fileprivate var midiClient:MIDIClientRef = 0
     fileprivate let settings:Settings = Settings.sharedInstance
     
@@ -35,8 +42,7 @@ class Receive {
     fileprivate let sysDebug:Bool = false
     
 
-    //MARK: -
-    //MARK: INIT
+    //MARK: - INIT
     
     internal func setup(withClient:MIDIClientRef, withSourceNames:[String]) -> Bool {
         
@@ -70,13 +76,13 @@ class Receive {
         }
     }
     
-    //MARK: - ACCESSORS
+    //MARK: - SOURCES
     internal func getAvailableMidiSourceNames() -> [String] {
         
         return availableMidiSourceNames
     }
     
-    //MARK: - SOURCES
+    
     internal func setActiveMidiSources(withSourceNames:[String]){
         
         //reset all
@@ -120,33 +126,24 @@ class Receive {
                     }
                 }
             }
-            
     
             if (debug) {
-                print("MIDI <- MIDI Available names:   ", availableMidiSourceNames)
                 
+                print("MIDI <- MIDI Available names:   ", availableMidiSourceNames)
             }
-            
-        
         } else {
             
             if (debug) { print("MIDI <- ERROR no sources detected") }
-            
         }
-
-        
     }
 
-
-    //MARK: - READ BLOCK
-    // read block for handing incoming messages
     
-    fileprivate func readBlock(_ packetList: UnsafePointer<MIDIPacketList>, srcConnRefCon: Optional<UnsafeMutableRawPointer>) -> Void {
+    //MARK: RECEIVING
+    //called by internal read block and audiobus read block
+    internal func process(packetList: UnsafePointer<MIDIPacketList>){
         
         let packets = packetList.pointee
-        
         let packet:MIDIPacket = packets.packet
-        
         var ap = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
         ap.initialize(to: packet)
         
@@ -172,79 +169,65 @@ class Receive {
             //MIDI system / sync messages
             if (settings.midiSync == XvMidiConstants.MIDI_CLOCK_RECEIVE) {
                 
-                //target the main thread since we are in the read block, a background thread
-                DispatchQueue.main.async(execute: {
+                //MARK: - MIDI CLOCK
+                if (status == 0xF8){
+                    ReceiveClock.sharedInstance.clockFire(withPacket:packet)
+                }
+                
+                //MARK: - SEQUENCER
+                //midi start (abelton)
+                if (status == 0xFA){
+                    Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveSystemStart, userInfo: nil)
+                }
+                
+                //midi position (abelton, maschine)
+                if (status == 0xF2){
                     
-                    //MARK: - MIDI CLOCK
-                    if (status == 0xF8){
-                        ReceiveClock.sharedInstance.clockFire(withPacket:packet)
-                    }
+                    let steps:Int = Int(d1)
+                    let patternsOf128Steps:Int = Int(d2)
+                    let totalSteps:Int = (patternsOf128Steps * 128) + steps
                     
-                    //MARK: - SEQUENCER
-                    //midi start (abelton)
-                    if (status == 0xFA){
-                        Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveSystemStart, userInfo: nil)
-                    }
+                    Utils.postNotification(
+                        name: XvMidiConstants.kXvMidiReceiveSystemPosition,
+                        userInfo: ["newPosition" : totalSteps])
                     
-                    //midi position (abelton, maschine)
-                    if (status == 0xF2){
-                        
-                        let steps:Int = Int(d1)
-                        let patternsOf128Steps:Int = Int(d2)
-                        let totalSteps:Int = (patternsOf128Steps * 128) + steps
-                        
-                        Utils.postNotification(
-                            name: XvMidiConstants.kXvMidiReceiveSystemPosition,
-                            userInfo: ["newPosition" : totalSteps])
-                        
-                    }
+                }
+                
+                //midi stop (ableton, maschine)
+                if (status == 0xFC){
                     
-                    //midi stop (ableton, maschine)
-                    if (status == 0xFC){
-                        
-                        ReceiveClock.sharedInstance.active = false //clock is now in inactive state
-                        
-                        Utils.postNotification(
-                            name: XvMidiConstants.kXvMidiReceiveSystemStop,
-                            userInfo: nil)
-                    }
+                    ReceiveClock.sharedInstance.active = false //clock is now in inactive state
                     
-                    //midi continue (ableton)
-                    if (status == 0xFB){
-                        Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveSystemContinue, userInfo: nil)
-                    }
-                    
-                })
+                    Utils.postNotification(
+                        name: XvMidiConstants.kXvMidiReceiveSystemStop,
+                        userInfo: nil)
+                }
+                
+                //midi continue (ableton)
+                if (status == 0xFB){
+                    Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveSystemContinue, userInfo: nil)
+                }
                 
             }
             
             //MARK: - NOTES
+            //MARK: note on
             
             if (rawStatus == 0x90){
                 
                 if (debug) { print("Note on. Channel \(channel) note \(d1) velocity \(d2)") }
                 
-                //target the main thread since we are in the read block, a background thread
-                DispatchQueue.main.async(execute: {
-                    
-                    Utils.postNotification(
-                        name: XvMidiConstants.kXvMidiReceiveNoteOn,
-                        userInfo: ["channel" : channel, "note" : d1, "velocity" : d2]
-                    )
-                    
-                })
+                Utils.postNotification(
+                    name: XvMidiConstants.kXvMidiReceiveNoteOn,
+                    userInfo: ["channel" : channel, "note" : d1, "velocity" : d2]
+                )
             }
             
             
             //MARK: note off
             if (rawStatus == 0x80){
                 
-                //target the main thread since we are in the read block, a background thread
-                DispatchQueue.main.async(execute: {
-                    
-                    Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveNoteOff, userInfo: nil)
-                    
-                })
+                Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveNoteOff, userInfo: nil)
             }
             
             ap = MIDIPacketNext(ap)
@@ -252,8 +235,22 @@ class Receive {
         }
         
     }
+
+    //MARK: - READ BLOCK
+    // read block - catch packet list from background thread and process it in foreground
     
-    
+    fileprivate func readBlock(
+        _ packetList: UnsafePointer<MIDIPacketList>,
+        srcConnRefCon: Optional<UnsafeMutableRawPointer>) -> Void {
+        
+        //if bypass is off, send along for processing
+        if (!bypass) {
+            DispatchQueue.main.async(execute: {
+                self.process(packetList: packetList)
+            })
+        }
+    }
+
     
     //MARK: -
     //MARK: RESET
