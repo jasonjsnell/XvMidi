@@ -50,9 +50,9 @@ class Send {
     fileprivate let MIDI_NOTES_MAX:Int = 128
     fileprivate let NOTE_OFF_VELOCITY:UInt8 = 0
     
-    fileprivate let debug:Bool = false
+    fileprivate let debug:Bool = true
     fileprivate let noteDebug:Bool = true
-    fileprivate let sysDebug:Bool = false
+    fileprivate let sysDebug:Bool = true
     
     //MARK: -
     //MARK: INIT
@@ -352,31 +352,14 @@ class Send {
             //https://en.wikipedia.org/wiki/Nibble#Low_and_high_nibbles
             //http://www.blitter.com/~russtopia/MIDI/~jglatt/tech/midispec/noteon.htm
             
-            //create
-            var packet = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
-            let packetList = UnsafeMutablePointer<MIDIPacketList>.allocate(capacity: 1)
+            var packet:MIDIPacket = MIDIPacket()
+            packet.timeStamp = 0
+            packet.length = 3
+            packet.data.0 = data[0]
+            packet.data.1 = data[1]
+            packet.data.2 = data[2]
             
-            //init
-            packet = MIDIPacketListInit(packetList)
-            
-            //grab length
-            let packetLength:Int = data.count
-            
-            //packet byte size
-            let packetByteSize:Int = 1024
-            
-            //set to now for instant delivery
-            let timeStamp:MIDITimeStamp = 0
-            
-            //add packet data to the packet list
-            packet = MIDIPacketListAdd(
-                packetList,
-                packetByteSize,
-                packet,
-                timeStamp,
-                packetLength,
-                data
-            )
+            var packetList:MIDIPacketList = MIDIPacketList(numPackets: 1, packet: packet);
             
             if (!_bypass){
                 
@@ -389,7 +372,7 @@ class Send {
                 
                 for destEndpointRef in activeDestinations {
                     
-                    MIDISend(outputPort, destEndpointRef, packetList)
+                    MIDISend(outputPort, destEndpointRef, &packetList)
                 }
                 
             } else {
@@ -404,9 +387,6 @@ class Send {
                     userInfo: ["packetList" : packetList]
                 )
             }
-            
-            //release
-            free(packetList)
 
         } else {
             if (debug){ print("MIDI -> Error no MIDI destinations during sendMidi") }

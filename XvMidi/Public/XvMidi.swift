@@ -91,10 +91,8 @@ public class XvMidi {
             //this allows the device to show up in NetWork Session devices
             //http://stackoverflow.com/questions/34258035/xcode-iphone-simulator-not-showing-up-in-audio-midi-setup-midi-network-setup
             
-            let session = MIDINetworkSession.default()
-            session.isEnabled = true
-            session.connectionPolicy = MIDINetworkConnectionPolicy.anyone
-            
+            MIDINetworkSession.default().isEnabled = true
+            MIDINetworkSession.default().connectionPolicy = MIDINetworkConnectionPolicy.anyone
             
             //MARK: INIT MIDI CLIENT
             //create notifcation blocks for watching messages
