@@ -60,7 +60,7 @@ public class XvMidi {
     
     //bools
     fileprivate var active:Bool = false
-    fileprivate var debug:Bool = true
+    fileprivate var debug:Bool = false
     
     
     //MARK: - PUBLIC API -
