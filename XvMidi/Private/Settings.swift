@@ -13,15 +13,18 @@ class Settings {
     //MARK: - VARS -
     
     //midi sync
-    internal var midiSync:String = ""
+    fileprivate var _midiSync:String = ""
+    internal var midiSync:String {
+        get { return _midiSync }
+        set { _midiSync = newValue}
+    }
     
     internal static let sharedInstance = Settings()
     fileprivate init() {
-        midiSync = XvMidiConstants.MIDI_CLOCK_NONE
+        _midiSync = XvMidiConstants.MIDI_CLOCK_NONE
     }
     
-    internal func set(midiSync:String){
-        self.midiSync = midiSync
-    }
+    
+    
     
 }

@@ -160,9 +160,10 @@ public class XvMidi {
     //MARK: - SETTERS
     
     //setters
-    //TODO: change to variable
-    public func set(midiSync:String){
-        settings.set(midiSync: midiSync)
+
+    public var midiSync:String {
+        set { settings.midiSync = newValue }
+        get { return settings.midiSync }
     }
     
     //MARK: - NOTES

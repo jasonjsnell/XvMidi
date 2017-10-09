@@ -353,11 +353,24 @@ class Send {
             //http://www.blitter.com/~russtopia/MIDI/~jglatt/tech/midispec/noteon.htm
             
             var packet:MIDIPacket = MIDIPacket()
+            
+            //set packet timestamp to now, zero
             packet.timeStamp = 0
-            packet.length = 3
-            packet.data.0 = data[0]
-            packet.data.1 = data[1]
-            packet.data.2 = data[2]
+            
+            //make the length match the contents of the incoming data array
+            packet.length = UInt16(data.count)
+            
+            
+            if (packet.length == 1){
+                //system messages (clock, start, stop, etc)
+                packet.data.0 = data[0]
+            
+            } else if (packet.length == 3){
+                //midi notes
+                packet.data.0 = data[0]
+                packet.data.1 = data[1]
+                packet.data.2 = data[2]
+            }
             
             var packetList:MIDIPacketList = MIDIPacketList(numPackets: 1, packet: packet);
             
