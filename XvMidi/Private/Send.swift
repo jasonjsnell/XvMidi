@@ -51,7 +51,7 @@ class Send {
     fileprivate let NOTE_OFF_VELOCITY:UInt8 = 0
     
     fileprivate let debug:Bool = false
-    fileprivate let noteDebug:Bool = false
+    fileprivate let noteDebug:Bool = true
     fileprivate let sysDebug:Bool = false
     
     //MARK: -
@@ -352,27 +352,24 @@ class Send {
             //https://en.wikipedia.org/wiki/Nibble#Low_and_high_nibbles
             //http://www.blitter.com/~russtopia/MIDI/~jglatt/tech/midispec/noteon.htm
             
-            var packet:MIDIPacket = MIDIPacket()
+            //create
+            var packet = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
+            let packetList = UnsafeMutablePointer<MIDIPacketList>.allocate(capacity: 1)
             
-            //set packet timestamp to now, zero
-            packet.timeStamp = 0
+            //init
+            packet = MIDIPacketListInit(packetList)
             
-            //make the length match the contents of the incoming data array
-            packet.length = UInt16(data.count)
+            //grab length
+            let packetLength:Int = data.count
             
+            //packet byte size
+            let packetByteSize:Int = 1024
             
-            if (packet.length == 1){
-                //system messages (clock, start, stop, etc)
-                packet.data.0 = data[0]
+            //set to now for instant delivery
+            let timeStamp:MIDITimeStamp = 0
             
-            } else if (packet.length == 3){
-                //midi notes
-                packet.data.0 = data[0]
-                packet.data.1 = data[1]
-                packet.data.2 = data[2]
-            }
-            
-            var packetList:MIDIPacketList = MIDIPacketList(numPackets: 1, packet: packet);
+            //add packet data to the packet list
+            packet = MIDIPacketListAdd(packetList, packetByteSize, packet, timeStamp, packetLength, data)
             
             if (!_bypass){
                 
@@ -385,7 +382,7 @@ class Send {
                 
                 for destEndpointRef in activeDestinations {
                     
-                    MIDISend(outputPort, destEndpointRef, &packetList)
+                    MIDISend(outputPort, destEndpointRef, packetList)
                 }
                 
             } else {
