@@ -23,6 +23,8 @@ class Receive {
     
     //MARK: - VARS -
     
+    fileprivate var appID:String = ""
+    
     //bypass MIDI core receive when audiobus midi functionality is on
     fileprivate var _bypass:Bool = false
     public var bypass:Bool {
@@ -38,13 +40,16 @@ class Receive {
     fileprivate var virtualDest:MIDIEndpointRef = MIDIEndpointRef()
     fileprivate var availableMidiSourceNames:[String] = []
     
-    fileprivate let debug:Bool = false
-    fileprivate let sysDebug:Bool = false
+    fileprivate let debug:Bool = true
+    fileprivate let sysDebug:Bool = true
     
 
     //MARK: - INIT
     
-    internal func setup(withClient:MIDIClientRef, withSourceNames:[String]) -> Bool {
+    internal func setup(appID:String, withClient:MIDIClientRef, withSourceNames:[String]) -> Bool {
+        
+        //grab appID, used in virutual client
+        self.appID = appID
         
         //grab local version of client so disconnect can happen in reset func
         midiClient = withClient
@@ -289,7 +294,7 @@ class Receive {
             
             status = MIDIInputPortCreateWithBlock(
                 midiClient,
-                "com.jasonjsnell.refraktions.InputPort" as CFString,
+                "com.jasonjsnell."+appID+".InputPort" as CFString,
                 &inputPort,
                 readBlock)
             
@@ -328,7 +333,7 @@ class Receive {
         
             status = MIDIDestinationCreateWithBlock(
                 midiClient,
-                "Repercussion" as CFString,
+                appID as CFString,
                 &virtualDest,
                 readBlock)
             
@@ -340,7 +345,7 @@ class Receive {
                 
             } else {
                 
-                if (sysDebug) { print("MIDI <- Error creating virtual destination port : \(status)") }
+                print("MIDI <- Error creating virtual destination port : \(status)")
                 
                 if (debug) {
                     Utils.showError(withStatus: status)

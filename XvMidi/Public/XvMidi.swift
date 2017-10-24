@@ -60,7 +60,7 @@ public class XvMidi {
     
     //bools
     fileprivate var active:Bool = false
-    fileprivate var debug:Bool = false
+    fileprivate var debug:Bool = true
     
     
     //MARK: - PUBLIC API -
@@ -99,7 +99,7 @@ public class XvMidi {
             let notifyBlock: MIDINotifyBlock = NotificationBlock.sharedInstance.notifyBlock
             
             //create MIDI client
-            status = MIDIClientCreateWithBlock("com.jasonjsnell.refraktions.MyMIDIClient" as CFString, &midiClient, notifyBlock)
+            status = MIDIClientCreateWithBlock("com.jasonjsnell."+appID+".MyMIDIClient" as CFString, &midiClient, notifyBlock)
             
             //if client is created...
             if status == OSStatus(noErr) {
@@ -138,7 +138,7 @@ public class XvMidi {
     //MARK: INIT MIDI RECEIVE
     public func initMidiReceive(withSourceNames:[String]) -> Bool {
         
-        return midiReceive.setup(withClient: midiClient, withSourceNames: withSourceNames)
+        return midiReceive.setup(appID: appID, withClient: midiClient, withSourceNames: withSourceNames)
     }
     
     //MARK: INIT MIDI SEND
