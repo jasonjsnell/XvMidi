@@ -62,7 +62,7 @@ class Utils {
         //http://stackoverflow.com/questions/30197819/given-a-hexadecimal-string-in-swift-convert-to-hex-value
         var byteArray = [UInt8]()
         
-        let charCount:Int = fromStr.characters.count
+        let charCount:Int = fromStr.count
         
         if (charCount > 1){
             var from = fromStr.startIndex

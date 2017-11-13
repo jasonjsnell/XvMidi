@@ -103,7 +103,7 @@ class NotificationBlock {
         let clockReceive:String = XvMidiConstants.MIDI_CLOCK_RECEIVE
         let clockSend:String = XvMidiConstants.MIDI_CLOCK_SEND
         
-        var msgStr:String = "CONNECT"
+        let msgStr:String = "CONNECT"
         
         var clockStr:String = String()
         if (sync == clockSend){
@@ -115,18 +115,18 @@ class NotificationBlock {
         }
         
         var totalStr:String = String()
-        if (msgStr.characters.count > 0 && clockStr.characters.count > 0){
+        if (msgStr.count > 0 && clockStr.count > 0){
             totalStr = msgStr + "  |  " + clockStr
-        } else if (msgStr.characters.count > 0){
+        } else if (msgStr.count > 0){
             totalStr = msgStr
-        } else if (clockStr.characters.count > 0){
+        } else if (clockStr.count > 0){
             totalStr = clockStr
         }
         
         var duration:Double = 3.5
         
         //if message is none...
-        if (totalStr.characters.count == 0){
+        if (totalStr.count == 0){
             totalStr = "none"
             duration = 2.5
         }

@@ -276,14 +276,14 @@ public class XvMidi {
     //MARK: - RESET 
     
     //called by user input
-    //called by defaults manager when new kit is loaded
+    //TODO: Future: called by defaults manager when new config is loaded
     //called by shutdown func locally
     
     public func allNotesOff(){
         midiSend.allNotesOff()
     }
     
-    //called by user input when instrument area is cleared via gesture
+    //called by user input when track area is cleared via gesture
     public func allNotesOff(ofChannel:Int){
         midiSend.allNotesOff(ofChannel: ofChannel)
     }
