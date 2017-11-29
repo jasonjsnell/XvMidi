@@ -45,21 +45,25 @@ class ReceiveClock{
         
         _active = true
         
-        //if so, send notification
-        Utils.postNotification(
-            name: XvMidiConstants.kXvMidiReceiveSystemClock,
-            userInfo: nil
-        )
+        //send notification on main queue
+        DispatchQueue.main.async(execute: {
+            Utils.postNotification(
+                name: XvMidiConstants.kXvMidiReceiveSystemClock,
+                userInfo: nil
+            )
+        })
         
         //measure distance between this timestamp and the last to calc tempo
         previousClockTime = currentClockTime
         currentClockTime = withPacket.timeStamp
         
-        //if both times are valid, above 0
-        if(previousClockTime > 0 && currentClockTime > 0) {
+        //if both times are above 0 and current time is more than previous time
+        if(previousClockTime > 0 && currentClockTime > 0 && currentClockTime > previousClockTime) {
+           
+            let timeDifference:UInt64 = currentClockTime-previousClockTime
             
             //user mach_timebase_info to get nanoseconds
-            let intervalInNanoseconds:UInt64 = nanosecondConversion(forTime: currentClockTime-previousClockTime)
+            let intervalInNanoseconds:UInt64 = nanosecondConversion(forTime: timeDifference)
             
             //if interval is valid, above 0
             if (intervalInNanoseconds > 0 ){
@@ -107,17 +111,14 @@ class ReceiveClock{
                 if (debug){
                     print ("MIDI CLOCK IN: exact: \(exactTempo) prev: \(prevRoundedTempo) curr:\(currRoundedTempo)")
                 }
-                
-                
             }
-            
         }
     }
     
     //MARK: - PRIVATE
     
     fileprivate func nanosecondConversion(forTime:UInt64) -> UInt64 {
-        
+    
         let kOneThousand:UInt64 = 1000
         
         var s_timebase_info = mach_timebase_info(numer: 0, denom: 0)

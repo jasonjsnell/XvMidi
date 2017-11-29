@@ -40,7 +40,7 @@ class Receive {
     fileprivate var virtualDest:MIDIEndpointRef = MIDIEndpointRef()
     fileprivate var availableMidiSourceNames:[String] = []
     
-    fileprivate let debug:Bool = true
+    fileprivate let debug:Bool = false
     fileprivate let sysDebug:Bool = true
     
 
@@ -149,6 +149,7 @@ class Receive {
         
         let packets = packetList.pointee
         let packet:MIDIPacket = packets.packet
+  
         var ap = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
         ap.initialize(to: packet)
         
@@ -168,7 +169,8 @@ class Receive {
             let status:UInt8 = packet.data.0
             let d1:UInt8 = packet.data.1
             let d2:UInt8 = packet.data.2
-            let rawStatus:UInt8 = status & 0xF0 // without channel
+           
+            //let rawStatus:UInt8 = status & 0xF0 // without channel
             let channel:UInt8 = status & 0x0F
             
             //MIDI system / sync messages
@@ -218,7 +220,7 @@ class Receive {
             //MARK: - NOTES
             //MARK: note on
             
-            if (rawStatus == 0x90){
+            if (status == 0x90){
                 
                 if (debug) { print("Note on. Channel \(channel) note \(d1) velocity \(d2)") }
                 
@@ -230,11 +232,24 @@ class Receive {
             
             
             //MARK: note off
-            if (rawStatus == 0x80){
+            if (status == 0x80){
                 
-                Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveNoteOff, userInfo: nil)
+                Utils.postNotification(
+                    name: XvMidiConstants.kXvMidiReceiveNoteOff,
+                    userInfo: ["channel" : channel, "note" : d1, "velocity" : d2]
+                )
             }
             
+            //MARK: - CONTROL CHANGES: DATA ENTRY
+            if (status == 0xB9) {
+                
+                Utils.postNotification(
+                    name: XvMidiConstants.kXvMidiReceiveControlChange,
+                    userInfo: ["channel" : channel, "control" : d1, "value" : d2]
+                )
+            }
+           
+            //prep next round
             ap = MIDIPacketNext(ap)
             
         }
@@ -330,7 +345,7 @@ class Receive {
         
         //create input port with read block (that handles the incoming traffic)
         if (virtualDest == 0){
-        
+            
             status = MIDIDestinationCreateWithBlock(
                 midiClient,
                 appID as CFString,
@@ -346,6 +361,9 @@ class Receive {
             } else {
                 
                 print("MIDI <- Error creating virtual destination port : \(status)")
+                if (String(describing: status) == "-10844"){
+                    print("MIDI <- Error 10844 solution: Add 'Audio' to Background Modes to enable virtual dest creation")
+                }
                 
                 if (debug) {
                     Utils.showError(withStatus: status)

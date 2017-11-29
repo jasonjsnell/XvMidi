@@ -23,6 +23,9 @@ public class XvMidiConstants {
     public static let kXvMidiReceiveNoteOn:String = "kXvMidiReceiveNoteOn"
     public static let kXvMidiReceiveNoteOff:String = "kXvMidiReceiveNoteOff"
     
+    //MARK: control changes
+    public static let kXvMidiReceiveControlChange:String = "kXvMidiReceiveControlChange"
+    
     //MARK: setup notifications
     public static let kXvMidiSetupChanged:String = "kXvMidiSetupChanged"
     
@@ -35,9 +38,9 @@ public class XvMidiConstants {
     //MARK: - CONSTANTS -
 
     //MARK: Midi Sync
-    internal static let MIDI_CLOCK_RECEIVE:String = "midiClockReceive"
-    internal static let MIDI_CLOCK_SEND:String = "midiClockSend"
-    internal static let MIDI_CLOCK_NONE:String = "midiClockNone"
+    public static let MIDI_CLOCK_RECEIVE:String = "midiClockReceive"
+    public static let MIDI_CLOCK_SEND:String = "midiClockSend"
+    public static let MIDI_CLOCK_NONE:String = "midiClockNone"
     
     public static let MIDI_DESTINATION_OMNI:String = "Omni"
     public static let MIDI_SOURCE_OMNI:String = "Omni"

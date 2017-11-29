@@ -66,6 +66,17 @@ public class XvMidi {
     //MARK: - PUBLIC API -
     
     //MARK: INIT
+    
+    //generic init using Omni sources and destinations for a quick setup
+    public func initMidi(withAppID:String) -> Bool {
+        
+        return initMidi(
+            withAppID: withAppID,
+            withSourceNames: [XvMidiConstants.MIDI_SOURCE_OMNI],
+            withDestinationNames: [XvMidiConstants.MIDI_DESTINATION_OMNI]
+        )
+    }
+    
     //called by DefaultsManager on app launch
     //called by DefaultsManager when leaving settings panel
     public func initMidi(withAppID:String, withSourceNames:[String], withDestinationNames:[String]) -> Bool {
