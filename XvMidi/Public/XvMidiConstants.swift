@@ -45,4 +45,5 @@ public class XvMidiConstants {
     public static let MIDI_DESTINATION_OMNI:String = "Omni"
     public static let MIDI_SOURCE_OMNI:String = "Omni"
     
+    public static let MIDI_SYSTEM_CHANNEL:Int = -1
 }

@@ -238,7 +238,7 @@ class Send {
         let midiData : [UInt8] = [noteOnByte, UInt8(note), UInt8(velocity)]
         
         //send data
-        sendMidi(data: midiData, toDestinations: destinations)
+        sendMidi(data: midiData, toDestinations: destinations, onChannel:channel)
         
     }
     
@@ -259,7 +259,7 @@ class Send {
         let midiData : [UInt8] = [noteOffByte, UInt8(note), NOTE_OFF_VELOCITY]
     
         //send midi
-        sendMidi(data: midiData, toDestinations: destinations)
+        sendMidi(data: midiData, toDestinations: destinations, onChannel: channel)
         
     }
     
@@ -341,7 +341,7 @@ class Send {
         return activeDestinations
     }
     
-    fileprivate func sendMidi(data:[UInt8], toDestinations:[String]){
+    fileprivate func sendMidi(data:[UInt8], toDestinations:[String], onChannel:Int){
         
         //prep empty array of final destinations
         let activeDestinations:[MIDIEndpointRef] = _getActiveDestinations(targetDestinationNames: toDestinations)
@@ -394,13 +394,21 @@ class Send {
                 //audiobus bypass - send packetlist out through a notification
                 Utils.postNotification(
                     name: XvMidiConstants.kXvMidiSendBypass,
-                    userInfo: ["packetList" : packetList]
+                    userInfo: [
+                        "packetList" : packetList,
+                        "channel" : onChannel
+                    ]
                 )
             }
-
+            
         } else {
             if (debug){ print("MIDI -> Error no MIDI destinations during sendMidi") }
         }
+        
+    }
+    fileprivate func sendMidi(data:[UInt8], toDestinations:[String]){
+        
+        sendMidi(data: data, toDestinations: toDestinations, onChannel: XvMidiConstants.MIDI_SYSTEM_CHANNEL)
         
     }
     
