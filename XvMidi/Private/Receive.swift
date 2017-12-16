@@ -156,15 +156,9 @@ class Receive {
         //loop through packets. Sometimes a note on /off is in the same packet as timeclock
         for _ in 0 ..< packets.numPackets {
             
-            let p = ap.pointee
-            
-            if (debug){print("MIDI <- Read block: timestamp: \(p.timeStamp)", terminator: " data: ")}
-            var hex = String(format:"0x%X", p.data.0)
-            if (debug){ print(hex, terminator: " : ") }
-            hex = String(format:"0x%X", p.data.1)
-            if (debug){ print(hex, terminator: " : ") }
-            hex = String(format:"0x%X", p.data.2)
-            if (debug){ print(hex) }
+            //if (debug) {
+                Utils.output(packet:ap)
+            //}
             
             let status:UInt8 = packet.data.0
             let d1:UInt8 = packet.data.1

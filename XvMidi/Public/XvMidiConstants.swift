@@ -46,4 +46,9 @@ public class XvMidiConstants {
     public static let MIDI_SOURCE_OMNI:String = "Omni"
     
     public static let MIDI_SYSTEM_CHANNEL:Int = -1
+    
+    //translations into MIDI friendly data
+    
+    public static let NOTE_ON_PREFIX:String = "9"
+    public static let NOTE_OFF_PREFIX:String = "8"
 }

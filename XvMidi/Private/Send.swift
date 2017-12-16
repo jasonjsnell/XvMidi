@@ -40,10 +40,7 @@ class Send {
     fileprivate var availableMidiDestinationNames:[String] = []
     fileprivate var activeGlobalMidiDestinationNames:[String] = [] //destinations selected by user
     
-    //translations into MIDI friendly data
     
-    fileprivate let NOTE_ON_PREFIX:String = "9"
-    fileprivate let NOTE_OFF_PREFIX:String = "8"
     
     //MIDI constants
     fileprivate let MIDI_CHANNEL_TOTAL:Int = 16
@@ -231,7 +228,7 @@ class Send {
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
         
         //create byte for note on
-        let noteOnByte:UInt8 = Utils.getByte(fromStr: NOTE_ON_PREFIX + midiChannelHex)
+        let noteOnByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_ON_PREFIX + midiChannelHex)
         
         //input incoming data into UInt8 array
         //midi data = status (midi command + channel), note number, velocity
@@ -252,7 +249,7 @@ class Send {
         let midiChannelHex:String = Utils.getHexString(fromInt: channel)
         
         //create byte for note off
-        let noteOffByte:UInt8 = Utils.getByte(fromStr: NOTE_OFF_PREFIX + midiChannelHex)
+        let noteOffByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_OFF_PREFIX + midiChannelHex)
         
         //input incoming data into UInt8 array
         //midi data = status (midi command + channel), note number, velocity
@@ -283,7 +280,7 @@ class Send {
         let midiChannelHex:String = Utils.getHexString(fromInt: ofChannel)
         
         //create byte for note off
-        let noteOffByte:UInt8 = Utils.getByte(fromStr: NOTE_OFF_PREFIX + midiChannelHex)
+        let noteOffByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_OFF_PREFIX + midiChannelHex)
         
         for noteNum:Int in 0 ..< MIDI_NOTES_MAX {
             
@@ -291,8 +288,8 @@ class Send {
             
             //midi data = status (midi command + channel), note number, velocity
             let midiData : [UInt8] = [noteOffByte, UInt8(noteNum), NOTE_OFF_VELOCITY]
-            
-            sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
+    
+            sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames, onChannel: ofChannel)
             
         }
 
