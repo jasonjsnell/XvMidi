@@ -288,19 +288,6 @@ public class XvMidi {
         midiReceive.process(packetList: packetList)
     }
     
-    //called by audiobus filter receive block
-    public func repackage(
-        packetList: UnsafePointer<MIDIPacketList>,
-        withChannel:UInt8) -> UnsafeMutablePointer<MIDIPacketList> {
-        
-        return Utils.repackage(packetList:packetList, withChannel:withChannel)
-    }
-    
-    public func getNoteData(fromPacketList: UnsafePointer<MIDIPacketList>) -> [UInt8]? {
-        
-        return Utils.getNoteData(fromPacketList: fromPacketList)
-    }
-    
     //MARK: - RESET 
     
     //called by user input
