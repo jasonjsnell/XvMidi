@@ -170,7 +170,7 @@ class Send {
         
         //MIDI Start command
         let midiData : [UInt8] = [0xFA]
-        sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
+        sendSystemMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
         
     }
     
@@ -180,7 +180,7 @@ class Send {
         
         //MIDI Stop command
         let midiData : [UInt8] = [0xFC]
-        sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
+        sendSystemMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
         
     }
     
@@ -198,13 +198,13 @@ class Send {
             sixteenthPosition = sixteenthPosition % MIDI_NOTES_MAX
         }
         
-        let sixteenthPositionByte = Utils.getByte(fromInt: sixteenthPosition)
-        let phrasePositionByte = Utils.getByte(fromInt: phrasePosition)
+        let sixteenthPositionByte:UInt8 = Utils.getByte(fromUInt8: UInt8(sixteenthPosition))
+        let phrasePositionByte:UInt8 = Utils.getByte(fromUInt8: UInt8(phrasePosition))
         
         if(debug){ print("MIDI -> Sequencer move to", sixteenthPositionByte, phrasePositionByte) }
         
         let midiData : [UInt8] = [0xF2, sixteenthPositionByte, phrasePositionByte]
-        sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
+        sendSystemMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
         
         
     }
@@ -214,18 +214,18 @@ class Send {
     //called by sequencer metronome
     internal func sendMidiClock(){
         let clockData:[UInt8] = [0xF8]
-        sendMidi(data: clockData, toDestinations: activeGlobalMidiDestinationNames)
+        sendSystemMidi(data: clockData, toDestinations: activeGlobalMidiDestinationNames)
     }
     
     //MARK: - NOTES
-    internal func noteOn(channel:Int, destinations:[String], note:UInt8, velocity:UInt8){
+    internal func noteOn(channel:UInt8, destinations:[String], note:UInt8, velocity:UInt8){
         
         if (noteDebug){
             print("MIDI -> note on", channel, destinations, note)
         }
         
         //convert it to a hex
-        let midiChannelHex:String = Utils.getHexString(fromInt: channel)
+        let midiChannelHex:String = Utils.getHexString(fromUInt8: channel)
         
         //create byte for note on
         let noteOnByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_ON_PREFIX + midiChannelHex)
@@ -239,14 +239,14 @@ class Send {
         
     }
     
-    internal func noteOff(channel:Int, destinations:[String], note:UInt8){
+    internal func noteOff(channel:UInt8, destinations:[String], note:UInt8){
         
         if (noteDebug){
             print("MIDI -> note off", channel, destinations, note)
         }
         
         //convert it to a hex
-        let midiChannelHex:String = Utils.getHexString(fromInt: channel)
+        let midiChannelHex:String = Utils.getHexString(fromUInt8: channel)
         
         //create byte for note off
         let noteOffByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_OFF_PREFIX + midiChannelHex)
@@ -267,17 +267,17 @@ class Send {
         }
         
         
-        for channel:Int in 0 ..< MIDI_CHANNEL_TOTAL {
+        for channel:Int in 0..<MIDI_CHANNEL_TOTAL {
             
-            allNotesOff(ofChannel: channel)
+            allNotesOff(ofChannel: UInt8(channel))
         }
         
     }
     
-    internal func allNotesOff(ofChannel:Int) {
+    internal func allNotesOff(ofChannel:UInt8) {
         
         //convert midi channel to a hex
-        let midiChannelHex:String = Utils.getHexString(fromInt: ofChannel)
+        let midiChannelHex:String = Utils.getHexString(fromUInt8: ofChannel)
         
         //create byte for note off
         let noteOffByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_OFF_PREFIX + midiChannelHex)
@@ -338,7 +338,16 @@ class Send {
         return activeDestinations
     }
     
-    fileprivate func sendMidi(data:[UInt8], toDestinations:[String], onChannel:Int){
+    //sends system data
+    fileprivate func sendSystemMidi(data:[UInt8], toDestinations:[String]){
+        
+        //route to main send func with system flag on
+        sendMidi(data: data, toDestinations: toDestinations, onChannel: 0, system: true)
+        
+    }
+    
+    //main send func
+    fileprivate func sendMidi(data:[UInt8], toDestinations:[String], onChannel:UInt8, system:Bool = false){
         
         //prep empty array of final destinations
         let activeDestinations:[MIDIEndpointRef] = _getActiveDestinations(targetDestinationNames: toDestinations)
@@ -376,6 +385,8 @@ class Send {
                 
                 //normal - send midi out via CoreMIDI
                 //loop through destinations and send midi to them all
+                print("MIDI Sending:")
+                Utils.printContents(ofPacket: packet)
                 
                 for destEndpointRef in activeDestinations {
                     
@@ -393,7 +404,8 @@ class Send {
                     name: XvMidiConstants.kXvMidiSendBypass,
                     userInfo: [
                         "packetList" : packetList,
-                        "channel" : onChannel
+                        "channel" : onChannel,
+                        "system" : system
                     ]
                 )
             }
@@ -403,11 +415,7 @@ class Send {
         }
         
     }
-    fileprivate func sendMidi(data:[UInt8], toDestinations:[String]){
-        
-        sendMidi(data: data, toDestinations: toDestinations, onChannel: XvMidiConstants.MIDI_SYSTEM_CHANNEL)
-        
-    }
+    
     
     //MARK: -
     //MARK: RESET

@@ -157,10 +157,12 @@ class Receive {
         for _ in 0 ..< packets.numPackets {
             
             //if (debug) {
-                Utils.output(packet:ap)
+                print("MIDI Receiving:")
+                Utils.printContents(ofPacket: ap)
             //}
             
             let status:UInt8 = packet.data.0
+            let rawStatus:UInt8 = status & 0xF0 // without channel
             let d1:UInt8 = packet.data.1
             let d2:UInt8 = packet.data.2
            
@@ -213,29 +215,41 @@ class Receive {
             
             //MARK: - NOTES
             //MARK: note on
-            
-            if (status == 0x90){
+            if (rawStatus == XvMidiConstants.NOTE_ON){
                 
                 if (debug) { print("Note on. Channel \(channel) note \(d1) velocity \(d2)") }
-                
-                Utils.postNotification(
-                    name: XvMidiConstants.kXvMidiReceiveNoteOn,
-                    userInfo: ["channel" : channel, "note" : d1, "velocity" : d2]
-                )
+            
+                if (d2 == 0x0){
+                    
+                    //some midi controllers request a note off by putting the velocity to 0
+                    Utils.postNotification(
+                        name: XvMidiConstants.kXvMidiReceiveNoteOff,
+                        userInfo: ["channel" : channel, "note" : d1]
+                    )
+                    
+                } else {
+                    
+                    //else send normam note on
+                    Utils.postNotification(
+                        name: XvMidiConstants.kXvMidiReceiveNoteOn,
+                        userInfo: ["channel" : channel, "note" : d1, "velocity" : d2]
+                    )
+                    
+                }
             }
             
             
             //MARK: note off
-            if (status == 0x80){
+            if (rawStatus == XvMidiConstants.NOTE_OFF){
                 
                 Utils.postNotification(
                     name: XvMidiConstants.kXvMidiReceiveNoteOff,
-                    userInfo: ["channel" : channel, "note" : d1, "velocity" : d2]
+                    userInfo: ["channel" : channel, "note" : d1]
                 )
             }
             
             //MARK: - CONTROL CHANGES: DATA ENTRY
-            if (status == 0xB9) {
+            if (rawStatus == XvMidiConstants.CONTROL_CHANGE) {
                 
                 Utils.postNotification(
                     name: XvMidiConstants.kXvMidiReceiveControlChange,

@@ -168,6 +168,10 @@ public class XvMidi {
         return ReceiveClock.sharedInstance.active
     }
     
+    public func printContents(ofPacket:UnsafeMutablePointer<MIDIPacket>){
+        Utils.printContents(ofPacket: ofPacket)
+    }
+    
     //MARK: - SETTERS
     
     //setters
@@ -179,7 +183,7 @@ public class XvMidi {
     
     //MARK: - NOTES
     
-    public func noteOn(channel:Int, destinations:[String], note:UInt8, velocity:UInt8){
+    public func noteOn(channel:UInt8, destinations:[String], note:UInt8, velocity:UInt8){
         
         //convert values to MIDI usable and send out
         midiSend.noteOn(
@@ -190,7 +194,7 @@ public class XvMidi {
         )
     }
     
-    public func noteOff(channel:Int, destinations:[String], note:UInt8){
+    public func noteOff(channel:UInt8, destinations:[String], note:UInt8){
         
         //convert values to MIDI usable and send out
         midiSend.noteOff(channel: channel, destinations: destinations, note: note)
@@ -247,14 +251,14 @@ public class XvMidi {
     //AppDel -> MIDI IO -> MIDI SEND
     
     public func refreshMidiDestinations(){
-        
+ 
         midiSend.refreshMidiDestinations()
     }
     
     
     //RootVC -> MIDI IO -> MIDI SEND
     public func getAvailableMidiDestinationNames() -> [String] {
-        
+    
         return midiSend.getAvailableMidiDestinationNames()
     }
     
@@ -287,7 +291,7 @@ public class XvMidi {
     //called by audiobus filter receive block
     public func repackage(
         packetList: UnsafePointer<MIDIPacketList>,
-        withChannel:Int) -> UnsafeMutablePointer<MIDIPacketList> {
+        withChannel:UInt8) -> UnsafeMutablePointer<MIDIPacketList> {
         
         return Utils.repackage(packetList:packetList, withChannel:withChannel)
     }
@@ -308,7 +312,7 @@ public class XvMidi {
     }
     
     //called by user input when track area is cleared via gesture
-    public func allNotesOff(ofChannel:Int){
+    public func allNotesOff(ofChannel:UInt8){
         midiSend.allNotesOff(ofChannel: ofChannel)
     }
     

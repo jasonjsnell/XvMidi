@@ -25,7 +25,7 @@ class Utils {
     
     class func repackage(
         packetList: UnsafePointer<MIDIPacketList>,
-        withChannel:Int) -> UnsafeMutablePointer<MIDIPacketList> {
+        withChannel:UInt8) -> UnsafeMutablePointer<MIDIPacketList> {
         
         //set up vars
         let inPacketList:MIDIPacketList = packetList.pointee
@@ -41,31 +41,41 @@ class Utils {
         for _ in 0 ..< inPacketList.numPackets {
             
             //print packet
-            print("")
-            output(packet: ap)
+            print("MIDI repackage")
+            printContents(ofPacket: ap)
             
             //extract data
             let timeStamp:MIDITimeStamp = inPacket.timeStamp
             let status:UInt8 = inPacket.data.0
+            let rawStatus:UInt8 = status & 0xF0 // without channel
             let d1:UInt8 = inPacket.data.1
             let d2:UInt8 = inPacket.data.2
             
             var outData:[UInt8]
             
             //if status is note on or off
-            if (status == 0x90 || status == 0x80){
+            if (rawStatus == XvMidiConstants.NOTE_ON || rawStatus == XvMidiConstants.NOTE_OFF){
                 
                 //convert it to a hex
-                let midiChannelHex:String = Utils.getHexString(fromInt: withChannel)
+                let midiChannelHex:String = getHexString(fromUInt8: withChannel)
                 var noteByte:UInt8 = 0
                 
-                if (status == 0x90){
+                if (rawStatus == XvMidiConstants.NOTE_ON){
                     
-                    //note on
-                    noteByte = Utils.getByte(fromStr: XvMidiConstants.NOTE_ON_PREFIX + midiChannelHex)
+                    if (d2 == 0x0) {
+                        
+                        print("note off")
+                        //some midi controllers request a note off by putting the velocity to 0
+                        noteByte = Utils.getByte(fromStr: XvMidiConstants.NOTE_OFF_PREFIX + midiChannelHex)
+                        
+                    } else {
+                        print("note on")
+                        //else normal note on
+                        noteByte = Utils.getByte(fromStr: XvMidiConstants.NOTE_ON_PREFIX + midiChannelHex)
+                    }
                     
-                } else if (status == 0x80){
-                    
+                } else if (rawStatus == XvMidiConstants.NOTE_OFF){
+                    print("note off")
                     //note off
                     noteByte = Utils.getByte(fromStr: XvMidiConstants.NOTE_OFF_PREFIX + midiChannelHex)
                     
@@ -96,9 +106,7 @@ class Utils {
             
         }
         
-        
         return outPacketList
-        
     }
     
     
@@ -116,15 +124,16 @@ class Utils {
             
             //print packet
             print("")
-            output(packet: ap)
+            printContents(ofPacket: ap)
             
             //extract data
             let status:UInt8 = packet.data.0
+            let rawStatus:UInt8 = status & 0xF0 // without channel
             let d1:UInt8 = packet.data.1
             let d2:UInt8 = packet.data.2
             
             //if status is note on or off
-            if (status == 0x90 || status == 0x80){
+            if (rawStatus == XvMidiConstants.NOTE_ON || rawStatus == XvMidiConstants.NOTE_OFF){
                 return [status, d1, d2]
             }
             
@@ -143,11 +152,12 @@ class Utils {
     class func getVelocity(fromVolume:Float) -> UInt8 {
         
         //convert volume to percentage
-        let pct = fromVolume * 100
+        let pct:Float = fromVolume * 100
         
         //convert to number based on velocity max
-        var velocity:Int = Int((127 * pct) / 100)
+        var velocity:Int = Int((XvMidiConstants.VELOCITY_MAX * pct) / 100)
         
+        //TODO: test - may need to up default volumes
         //boost
         velocity += 70
         if (velocity > 127){
@@ -157,18 +167,20 @@ class Utils {
         return UInt8(velocity)
         
     }
+    
+    
  
     
     //MARK: - HEX BYTE CONVERSTIONS
     //called by internal and by MidiSend
-    class func getHexString(fromInt:Int) -> String {
-        return String(fromInt, radix: 16, uppercase: true)
+    class func getHexString(fromUInt8:UInt8) -> String {
+        return String(fromUInt8, radix: 16, uppercase: true)
     }
     
     //http://stackoverflow.com/questions/24229505/how-to-convert-an-int-to-hex-string-in-swift
     //called by MidiSend
-    class func getByte(fromInt:Int) -> UInt8 {
-        return getByte(fromStr: getHexString(fromInt: fromInt))
+    class func getByte(fromUInt8:UInt8) -> UInt8 {
+        return getByte(fromStr: getHexString(fromUInt8: fromUInt8))
     }
     
     //called by internal and by MidiSend
@@ -200,17 +212,22 @@ class Utils {
     
     //MARK: - OUTPUT
     
-    class func output(packet:UnsafeMutablePointer<MIDIPacket>){
+    class func printContents(ofPacket:UnsafeMutablePointer<MIDIPacket>){
         
-        let p = packet.pointee
+        let p = ofPacket.pointee
         
-        print("MIDI <- Read block: timestamp: \(p.timeStamp)", terminator: " data: ")
-        var hex = String(format:"0x%X", p.data.0)
-        print(hex, terminator: " : ")
-        hex = String(format:"0x%X", p.data.1)
-        print(hex, terminator: " : ")
-        hex = String(format:"0x%X", p.data.2)
-        print(hex)
+        
+        let statusHex = String(format:"0x%X", p.data.0)
+        let d1Hex = String(format:"0x%X", p.data.1)
+        let d2Hex = String(format:"0x%X", p.data.2)
+        
+        let status:UInt8 = p.data.0
+        let channel:UInt8 = status & 0x0F
+        let rawStatus:UInt8 = status & 0xF0 // without channel
+        let d1:UInt8 = p.data.1
+        let d2:UInt8 = p.data.2
+        
+        print("MIDI Packet: CH:", (channel+1), "| Status:", statusHex, "/", rawStatus, "|", d1Hex, "/", d1, "|", d2Hex, "/", d2)
     }
     
     //used to show OSStatus errors from interface
