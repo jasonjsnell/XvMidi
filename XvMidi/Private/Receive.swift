@@ -156,10 +156,10 @@ class Receive {
         //loop through packets. Sometimes a note on /off is in the same packet as timeclock
         for _ in 0 ..< packets.numPackets {
             
-            //if (debug) {
+            if (debug) {
                 print("MIDI Receiving:")
                 Utils.printContents(ofPacket: ap)
-            //}
+            }
             
             let status:UInt8 = packet.data.0
             let rawStatus:UInt8 = status & 0xF0 // without channel

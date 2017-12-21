@@ -385,8 +385,10 @@ class Send {
                 
                 //normal - send midi out via CoreMIDI
                 //loop through destinations and send midi to them all
-                print("MIDI Sending:")
-                Utils.printContents(ofPacket: packet)
+                if (debug){
+                    print("MIDI Sending:")
+                    Utils.printContents(ofPacket: packet)
+                }
                 
                 for destEndpointRef in activeDestinations {
                     

@@ -164,12 +164,10 @@ public class XvMidi {
         return Utils.getVelocity(fromVolume: fromVolume)
     }
     
-    public func isReceivingExternalClock() -> Bool {
-        return ReceiveClock.sharedInstance.active
-    }
-    
-    public func printContents(ofPacket:UnsafeMutablePointer<MIDIPacket>){
-        Utils.printContents(ofPacket: ofPacket)
+    public var isReceivingExternalClock:Bool {
+        get {
+            return ReceiveClock.sharedInstance.active
+        }
     }
     
     //MARK: - SETTERS
