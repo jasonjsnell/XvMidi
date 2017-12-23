@@ -90,12 +90,13 @@ class Send {
    
     //MARK: - DESTINATIONS
     internal func getAvailableMidiDestinationNames() -> [String] {
-        
+        print("getAvailableMidiDestinationNames")
         return availableMidiDestinationNames
     }
     
     internal func setActiveGlobalMidiDestinations(withDestinationNames:[String]){
         
+        print("setActiveGlobalMidiDestinations")
         //clear array
         activeGlobalMidiDestinationNames = []
         
@@ -124,6 +125,8 @@ class Send {
     }
     
     internal func refreshMidiDestinations() {
+        
+        print("refreshMidiDestinations")
         
         //reset all
         availableMidiDestinations = []

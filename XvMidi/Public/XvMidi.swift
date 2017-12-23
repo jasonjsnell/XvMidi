@@ -60,7 +60,7 @@ public class XvMidi {
     
     //bools
     fileprivate var active:Bool = false
-    fileprivate var debug:Bool = false
+    fileprivate var debug:Bool = true
     
     
     //MARK: - PUBLIC API -
@@ -141,7 +141,8 @@ public class XvMidi {
             
         } else {
             
-            if (debug){ print("MIDI <> Session already activated") }
+            if (debug){ print("MIDI <> Session already activated, but refresh destinations") }
+            midiSend.refreshMidiDestinations()
             return true
         }        
     }
