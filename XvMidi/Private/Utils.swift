@@ -32,21 +32,11 @@ class Utils {
         let pct:Float = fromVolume * 100
         
         //convert to number based on velocity max
-        var velocity:Int = Int((XvMidiConstants.VELOCITY_MAX * pct) / 100)
-        
-        //TODO: test - may need to up default volumes
-        //boost
-        velocity += 70
-        if (velocity > 127){
-            velocity = 127
-        }
+        let velocity:Int = Int((XvMidiConstants.VELOCITY_MAX * pct) / 100)
         
         return UInt8(velocity)
         
     }
-    
-    
- 
     
     //MARK: - HEX BYTE CONVERSTIONS
     //called by internal and by MidiSend
