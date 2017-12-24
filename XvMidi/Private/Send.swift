@@ -96,7 +96,6 @@ class Send {
     
     internal func setActiveGlobalMidiDestinations(withDestinationNames:[String]){
         
-        print("setActiveGlobalMidiDestinations")
         //clear array
         activeGlobalMidiDestinationNames = []
         
@@ -125,8 +124,6 @@ class Send {
     }
     
     internal func refreshMidiDestinations() {
-        
-        print("refreshMidiDestinations")
         
         //reset all
         availableMidiDestinations = []
