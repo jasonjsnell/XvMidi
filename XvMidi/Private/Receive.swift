@@ -41,7 +41,7 @@ class Receive {
     fileprivate var availableMidiSourceNames:[String] = []
     
     fileprivate let debug:Bool = false
-    fileprivate let sysDebug:Bool = true
+    fileprivate let sysDebug:Bool = false
     
 
     //MARK: - INIT
