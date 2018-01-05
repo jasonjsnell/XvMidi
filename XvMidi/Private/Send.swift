@@ -90,7 +90,7 @@ class Send {
    
     //MARK: - DESTINATIONS
     internal func getAvailableMidiDestinationNames() -> [String] {
-        print("getAvailableMidiDestinationNames")
+        
         return availableMidiDestinationNames
     }
     
