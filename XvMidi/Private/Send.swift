@@ -36,6 +36,8 @@ class Send {
     
     //ports, endpoints, destinations
     fileprivate var outputPort = MIDIPortRef()
+    fileprivate var virtualSource:MIDIEndpointRef = MIDIEndpointRef()
+    
     fileprivate var availableMidiDestinations:[MIDIEndpointRef] = [] //all available destinations
     fileprivate var availableMidiDestinationNames:[String] = []
     fileprivate var activeGlobalMidiDestinationNames:[String] = [] //destinations selected by user
@@ -47,12 +49,14 @@ class Send {
     fileprivate let MIDI_NOTES_MAX:Int = 128
     fileprivate let NOTE_OFF_VELOCITY:UInt8 = 0
     
-    fileprivate let debug:Bool = false
-    fileprivate let noteDebug:Bool = false
-    fileprivate let sysDebug:Bool = false
+    fileprivate let debug:Bool = true
+    fileprivate let noteDebug:Bool = true
+    fileprivate let sysDebug:Bool = true
     
     //MARK: -
     //MARK: INIT
+    
+    
    
     internal func setup(withAppID:String, withClient:MIDIClientRef, withDestinatonNames:[String]) -> Bool {
         
@@ -66,7 +70,7 @@ class Send {
         if (midiClient != 0) {
             
             //if output port is successfully initialized...
-            if (_initOutputPort()){
+            if (_initOutputPort() && _initVirtualSource()){
                 
                 //sets the user selected destinations
                 setActiveGlobalMidiDestinations(withDestinationNames: withDestinatonNames)
@@ -87,6 +91,8 @@ class Send {
         }
         
     }
+    
+    
    
     //MARK: - DESTINATIONS
     internal func getAvailableMidiDestinationNames() -> [String] {
@@ -412,6 +418,26 @@ class Send {
                 )
             }
             
+            //always send to MIDI virtual source (used in both normal and audiobus / aum modes
+            if (virtualSource != 0){
+                
+                let status = MIDIReceived(virtualSource, packetList)
+                
+                if status == OSStatus(noErr) {
+                    
+                    if (sysDebug){
+                        print("MIDI -> Success sending from virtual source")
+                    }
+                    
+                } else {
+                    print("MIDI -> Error sending to virutal port", status)
+                }
+                
+            } else {
+                print("MIDI -> Error: virtual source is 0 during MIDI send")
+            }
+            
+            
         } else {
             if (debug){ print("MIDI -> Error no MIDI destinations during sendMidi") }
         }
@@ -471,6 +497,47 @@ class Send {
             
         } else {
             if (sysDebug) { print("MIDI -> Output port already created") }
+            return true
+        }
+        
+    }
+    
+    fileprivate func _initVirtualSource() -> Bool {
+        
+        //status var for error handling
+        var status = OSStatus(noErr)
+        
+        //create input port with read block (that handles the incoming traffic)
+        if (virtualSource == 0){
+            
+            status = MIDISourceCreate(
+                midiClient,
+                appID as CFString,
+                &virtualSource)
+            
+            //error checking
+            if status == OSStatus(noErr) {
+                
+                if (sysDebug) { print("MIDI <- Virtual source successfully created", virtualSource) }
+                return true
+                
+            } else {
+                
+                print("MIDI <- Error creating virtual source port : \(status)")
+                if (String(describing: status) == "-10844"){
+                    print("MIDI <- Error 10844 solution: Add 'Audio' to Background Modes to enable virtual source creation")
+                }
+                
+                if (debug) {
+                    Utils.showError(withStatus: status)
+                }
+                
+                return false
+                
+            }
+            
+        } else {
+            if (sysDebug) { print("MIDI <- Virtual dest already created") }
             return true
         }
         
