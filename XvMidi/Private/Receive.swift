@@ -17,6 +17,9 @@ import CoreMIDI
 
 class Receive {
     
+    fileprivate let debug:Bool = false
+    fileprivate let sysDebug:Bool = false
+    
     //singleton code
     static let sharedInstance = Receive()
     fileprivate init() {}
@@ -39,9 +42,6 @@ class Receive {
     fileprivate var inputPort:MIDIPortRef = MIDIPortRef()
     fileprivate var virtualDest:MIDIEndpointRef = MIDIEndpointRef()
     fileprivate var availableMidiSourceNames:[String] = []
-    
-    fileprivate let debug:Bool = false
-    fileprivate let sysDebug:Bool = false
     
 
     //MARK: - INIT
@@ -94,7 +94,7 @@ class Receive {
         _disconnectAllSources()
         availableMidiSourceNames = []
         
-        if (debug) {print("MIDI <- # of sources: \(MIDIGetNumberOfSources())")}
+        if (debug) { print("MIDI <- # of sources: \(MIDIGetNumberOfSources())")}
         
         //check for omni
         var omni:Bool = false
@@ -112,13 +112,25 @@ class Receive {
                 
                 let midiSource:MIDIEndpointRef = MIDIGetSource(s)
                 let midiSourceName:String = _getName(forMidiSource: midiSource)
-                availableMidiSourceNames.append(midiSourceName)
+                
+                
+                //add source except self (no need to have this app's own virtual source as a target)
+                //if source is the app's own virutal source, add it as a connect source, but not as a listed option
+                if (midiSourceName == appID){
+                    
+                    if (debug) { print("MIDI <- Add", midiSourceName) }
+                    MIDIPortConnectSource(inputPort, midiSource, nil)
+                
+                } else {
+                    
+                    availableMidiSourceNames.append(midiSourceName)
+                }
                 
                 //if omni, add all
                 if (omni) {
                     
                     MIDIPortConnectSource(inputPort, midiSource, nil)
-                    print("MIDI <- Add all sources")
+                    if (debug) { print("MIDI <- Add all sources") }
                     
                 } else {
                     
@@ -126,7 +138,7 @@ class Receive {
                     if let _:Int = withSourceNames.index(of: midiSourceName) {
                         
                         MIDIPortConnectSource(inputPort, midiSource, nil)
-                        print("MIDI <- Add", midiSourceName)
+                        if (debug) { print("MIDI <- Add", midiSourceName) }
                         
                     }
                 }
@@ -217,7 +229,7 @@ class Receive {
             //MARK: note on
             if (rawStatus == XvMidiConstants.NOTE_ON){
                 
-                if (debug) { print("Note on. Channel \(channel) note \(d1) velocity \(d2)") }
+                if (debug) { print("MIDI <- Note on. Channel \(channel) note \(d1) velocity \(d2)") }
             
                 if (d2 == 0x0){
                     

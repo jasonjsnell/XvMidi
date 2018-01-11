@@ -14,6 +14,10 @@ import CoreMIDI
 
 class Send {
     
+    fileprivate let debug:Bool = false
+    fileprivate let noteDebug:Bool = false
+    fileprivate let sysDebug:Bool = false
+    
     //singleton code
     static let sharedInstance = Send()
     fileprivate init() {}
@@ -48,10 +52,6 @@ class Send {
     fileprivate let MIDI_CHANNEL_TOTAL:Int = 16
     fileprivate let MIDI_NOTES_MAX:Int = 128
     fileprivate let NOTE_OFF_VELOCITY:UInt8 = 0
-    
-    fileprivate let debug:Bool = true
-    fileprivate let noteDebug:Bool = true
-    fileprivate let sysDebug:Bool = true
     
     //MARK: -
     //MARK: INIT
@@ -390,12 +390,32 @@ class Send {
                 }
                 
                 //normal - send midi out via CoreMIDI
-                //loop through destinations and send midi to them all
+                
                 if (debug){
                     print("MIDI Sending:")
                     Utils.printContents(ofPacket: packet)
                 }
                 
+                //send to MIDI virtual source
+                if (virtualSource != 0){
+                    
+                    let status = MIDIReceived(virtualSource, packetList)
+                    
+                    if status == OSStatus(noErr) {
+                        
+                        if (sysDebug){
+                            print("MIDI -> Success sending from virtual source")
+                        }
+                        
+                    } else {
+                        print("MIDI -> Error sending to virutal port", status)
+                    }
+                    
+                } else {
+                    print("MIDI -> Error: virtual source is 0 during MIDI send")
+                }
+                
+                //loop through destinations and send midi to them all
                 for destEndpointRef in activeDestinations {
                     
                     MIDISend(outputPort, destEndpointRef, packetList)
@@ -418,24 +438,7 @@ class Send {
                 )
             }
             
-            //always send to MIDI virtual source (used in both normal and audiobus / aum modes
-            if (virtualSource != 0){
-                
-                let status = MIDIReceived(virtualSource, packetList)
-                
-                if status == OSStatus(noErr) {
-                    
-                    if (sysDebug){
-                        print("MIDI -> Success sending from virtual source")
-                    }
-                    
-                } else {
-                    print("MIDI -> Error sending to virutal port", status)
-                }
-                
-            } else {
-                print("MIDI -> Error: virtual source is 0 during MIDI send")
-            }
+            
             
             
         } else {
