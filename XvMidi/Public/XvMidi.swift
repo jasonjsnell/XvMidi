@@ -29,7 +29,7 @@ import CoreMIDI
 
 public class XvMidi {
     
-    fileprivate var debug:Bool = true
+    fileprivate var debug:Bool = false
     
     //singleton code
     public static let sharedInstance = XvMidi()

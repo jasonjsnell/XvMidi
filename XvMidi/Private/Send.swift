@@ -16,7 +16,7 @@ class Send {
     
     fileprivate let debug:Bool = false
     fileprivate let noteDebug:Bool = false
-    fileprivate let sysDebug:Bool = false
+    fileprivate let sysDebug:Bool = true
     
     //singleton code
     static let sharedInstance = Send()
@@ -40,7 +40,7 @@ class Send {
     
     //ports, endpoints, destinations
     fileprivate var outputPort = MIDIPortRef()
-    fileprivate var virtualSource:MIDIEndpointRef = MIDIEndpointRef()
+    fileprivate var virtualMidiOutput:MIDIEndpointRef = MIDIEndpointRef()
     
     fileprivate var availableMidiDestinations:[MIDIEndpointRef] = [] //all available destinations
     fileprivate var availableMidiDestinationNames:[String] = []
@@ -70,7 +70,7 @@ class Send {
         if (midiClient != 0) {
             
             //if output port is successfully initialized...
-            if (_initOutputPort() && _initVirtualSource()){
+            if (_initOutputPort() && _initVirtualMidiOut()){
                 
                 //sets the user selected destinations
                 setActiveGlobalMidiDestinations(withDestinationNames: withDestinatonNames)
@@ -389,17 +389,15 @@ class Send {
                     print("MIDI -> destinations:", activeDestinations)
                 }
                 
-                //normal - send midi out via CoreMIDI
-                
                 if (debug){
                     print("MIDI Sending:")
                     Utils.printContents(ofPacket: packet)
                 }
                 
-                //send to MIDI virtual source
-                if (virtualSource != 0){
+                //send to MIDI virtual output
+                if (virtualMidiOutput != 0){
                     
-                    let status = MIDIReceived(virtualSource, packetList)
+                    let status = MIDIReceived(virtualMidiOutput, packetList)
                     
                     if status == OSStatus(noErr) {
                         
@@ -415,7 +413,10 @@ class Send {
                     print("MIDI -> Error: virtual source is 0 during MIDI send")
                 }
                 
+                //normal - send midi out via CoreMIDI
                 //loop through destinations and send midi to them all
+                
+                print("normal midi out", toDestinations)
                 for destEndpointRef in activeDestinations {
                     
                     MIDISend(outputPort, destEndpointRef, packetList)
@@ -505,23 +506,23 @@ class Send {
         
     }
     
-    fileprivate func _initVirtualSource() -> Bool {
+    fileprivate func _initVirtualMidiOut() -> Bool {
         
         //status var for error handling
         var status = OSStatus(noErr)
         
         //create input port with read block (that handles the incoming traffic)
-        if (virtualSource == 0){
+        if (virtualMidiOutput == 0){
             
             status = MIDISourceCreate(
                 midiClient,
                 appID as CFString,
-                &virtualSource)
+                &virtualMidiOutput)
             
             //error checking
             if status == OSStatus(noErr) {
                 
-                if (sysDebug) { print("MIDI <- Virtual source successfully created", virtualSource) }
+                if (sysDebug) { print("MIDI <- Virtual source successfully created", virtualMidiOutput) }
                 return true
                 
             } else {

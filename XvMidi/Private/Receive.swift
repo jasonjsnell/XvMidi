@@ -17,8 +17,8 @@ import CoreMIDI
 
 class Receive {
     
-    fileprivate let debug:Bool = false
-    fileprivate let sysDebug:Bool = false
+    fileprivate let debug:Bool = true
+    fileprivate let sysDebug:Bool = true
     
     //singleton code
     static let sharedInstance = Receive()
@@ -40,7 +40,7 @@ class Receive {
     
     //ports, endpoints, source
     fileprivate var inputPort:MIDIPortRef = MIDIPortRef()
-    fileprivate var virtualDest:MIDIEndpointRef = MIDIEndpointRef()
+    fileprivate var virtualMidiInput:MIDIEndpointRef = MIDIEndpointRef()
     fileprivate var availableMidiSourceNames:[String] = []
     
 
@@ -57,7 +57,7 @@ class Receive {
         //make sure incoming client is valid
         if (midiClient != 0) {
             
-            if (_initInputPort() && _initVirtualDestination()){
+            if (_initInputPort() && _initVirtualMidiIn()){
                 
                 setActiveMidiSources(withSourceNames: withSourceNames)
                 
@@ -84,6 +84,10 @@ class Receive {
     //MARK: - SOURCES
     internal func getAvailableMidiSourceNames() -> [String] {
         
+        print("")
+        print("")
+        print("///////////////////////////////////////")
+        print(availableMidiSourceNames)
         return availableMidiSourceNames
     }
     
@@ -113,21 +117,17 @@ class Receive {
                 let midiSource:MIDIEndpointRef = MIDIGetSource(s)
                 let midiSourceName:String = _getName(forMidiSource: midiSource)
                 
-                
-                //add source except self (no need to have this app's own virtual source as a target)
-                //if source is the app's own virutal source, add it as a connect source, but not as a listed option
-                if (midiSourceName == appID){
+                //only add sources names that are not the app name (which means it's the virtual input)
+                //virtual input has it's own read block and will be added twice if added here, causing a midi feedback loop
+                if (midiSourceName != appID){
                     
-                    if (debug) { print("MIDI <- Add", midiSourceName) }
-                    MIDIPortConnectSource(inputPort, midiSource, nil)
-                
-                } else {
-                    
+                    //add source name to the available sources list
                     availableMidiSourceNames.append(midiSourceName)
+                
                 }
                 
-                //if omni, add all
-                if (omni) {
+                //if omni, add all except virtual input
+                if (omni && midiSourceName != appID) {
                     
                     MIDIPortConnectSource(inputPort, midiSource, nil)
                     if (debug) { print("MIDI <- Add all sources") }
@@ -241,7 +241,7 @@ class Receive {
                     
                 } else {
                     
-                    //else send normam note on
+                    //else send normal note on
                     Utils.postNotification(
                         name: XvMidiConstants.kXvMidiReceiveNoteOn,
                         userInfo: ["channel" : channel, "note" : d1, "velocity" : d2]
@@ -276,13 +276,28 @@ class Receive {
         
     }
 
-    //MARK: - READ BLOCK
+    //MARK: - READ BLOCKS
     // read block - catch packet list from background thread and process it in foreground
     
-    fileprivate func readBlock(
+    fileprivate func inputPortReadBlock(
         _ packetList: UnsafePointer<MIDIPacketList>,
         srcConnRefCon: Optional<UnsafeMutableRawPointer>) -> Void {
         
+        print("read block for normal input port")
+        
+        //if bypass is off, send along for processing
+        if (!bypass) {
+            DispatchQueue.main.async(execute: {
+                self.process(packetList: packetList)
+            })
+        }
+    }
+    
+    fileprivate func virtualMidiInputReadBlock(
+        _ packetList: UnsafePointer<MIDIPacketList>,
+        srcConnRefCon: Optional<UnsafeMutableRawPointer>) -> Void {
+        
+        print("read block for virtual destination")
         //if bypass is off, send along for processing
         if (!bypass) {
             DispatchQueue.main.async(execute: {
@@ -331,7 +346,7 @@ class Receive {
                 midiClient,
                 "com.jasonjsnell."+appID+".InputPort" as CFString,
                 &inputPort,
-                readBlock)
+                inputPortReadBlock)
             
             //error checking
             if status == OSStatus(noErr) {
@@ -358,24 +373,24 @@ class Receive {
   
     }
     
-    fileprivate func _initVirtualDestination() -> Bool {
+    fileprivate func _initVirtualMidiIn() -> Bool {
         
         //status var for error handling
         var status = OSStatus(noErr)
         
         //create input port with read block (that handles the incoming traffic)
-        if (virtualDest == 0){
+        if (virtualMidiInput == 0){
             
             status = MIDIDestinationCreateWithBlock(
                 midiClient,
                 appID as CFString,
-                &virtualDest,
-                readBlock)
+                &virtualMidiInput,
+                virtualMidiInputReadBlock)
             
             //error checking
             if status == OSStatus(noErr) {
                 
-                if (sysDebug) { print("MIDI <- Virtual dest successfully created", virtualDest) }
+                if (sysDebug) { print("MIDI <- Virtual dest successfully created", virtualMidiInput) }
                 return true
                 
             } else {
