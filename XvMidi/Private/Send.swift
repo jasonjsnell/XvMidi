@@ -302,8 +302,126 @@ class Send {
     }
     
     
+    //MARK: - MIDI OUT
+    
+    //sends system data
+    fileprivate func sendSystemMidi(data:[UInt8], toDestinations:[String]){
+        
+        //route to main send func with system flag on
+        sendMidi(data: data, toDestinations: toDestinations, onChannel: 0, system: true)
+        
+    }
+    
+    //main send func
+    fileprivate func sendMidi(data:[UInt8], toDestinations:[String], onChannel:UInt8, system:Bool = false){
+        
+        //prepare midi packet
+        
+        //https://en.wikipedia.org/wiki/Nibble#Low_and_high_nibbles
+        //http://www.blitter.com/~russtopia/MIDI/~jglatt/tech/midispec/noteon.htm
+        
+        //create
+        var packet = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
+        let packetList = UnsafeMutablePointer<MIDIPacketList>.allocate(capacity: 1)
+        
+        //init
+        packet = MIDIPacketListInit(packetList)
+        
+        //grab length
+        let packetLength:Int = data.count
+        
+        //packet byte size
+        let packetByteSize:Int = 1024
+        
+        //set to now for instant delivery
+        let timeStamp:MIDITimeStamp = 0
+        
+        //add packet data to the packet list
+        packet = MIDIPacketListAdd(packetList, packetByteSize, packet, timeStamp, packetLength, data)
+        
+        if (debug){
+            print("MIDI Sending:")
+            Utils.printContents(ofPacket: packet)
+        }
+        
+        //MARK: Virtual MIDI out
+        //always send to MIDI virtual output
+        if (virtualMidiOutput != 0){
+            
+            let status = MIDIReceived(virtualMidiOutput, packetList)
+            
+            if status == OSStatus(noErr) {
+                
+                if (noteDebug){
+                    print("MIDI -> Success sending from virtual output")
+                }
+                
+            } else {
+                print("MIDI -> Error sending from virutal output", status)
+            }
+            
+        } else {
+            print("MIDI -> Error: virtual output is 0 during MIDI send")
+        }
+        
+        
+        if (!_bypass){
+            
+            //MARK: Standard MIDI out
+            //send to user selected, active destinations
+            
+            //get array of active destinations
+            let activeDestinations:[MIDIEndpointRef] = _getActiveDestinations(targetDestinationNames: toDestinations)
+            
+            if (noteDebug){ print("MIDI -> destinations:", activeDestinations) }
+            
+            //loop through destinations and send midi to them all
+            for destEndpointRef in activeDestinations {
+                
+                MIDISend(outputPort, destEndpointRef, packetList)
+            }
+            
+        } else {
+            
+            //MARK: Audiobus MIDI out
+            if (noteDebug){
+                print("MIDI -> Audiobus")
+            }
+            
+            //audiobus bypass - send packetlist out through a notification
+            Utils.postNotification(
+                name: XvMidiConstants.kXvMidiSendBypass,
+                userInfo: [
+                    "packetList" : packetList,
+                    "channel" : onChannel,
+                    "system" : system
+                ]
+            )
+        }
+    }
+    
+    
     //MARK: -
-    //MARK: SEND DATA
+    //MARK: RESET
+    internal func shutdown(){
+        
+        if (sysDebug) { print("MIDI -> Shutdown") }
+        
+        //if system is active, then send all notes off command to refreshed destinations
+        if (midiClient != 0 && outputPort != 0) {
+            refreshMidiDestinations()
+            allNotesOff()
+        }
+        
+        MIDIPortDispose(outputPort)
+        outputPort = 0
+        midiClient = 0
+        availableMidiDestinations = []
+        availableMidiDestinationNames = []
+        activeGlobalMidiDestinationNames = []
+    }
+
+    //MARK:- helper sub funcs
     
     fileprivate func _getActiveDestinations(targetDestinationNames:[String]) -> [MIDIEndpointRef] {
         
@@ -343,133 +461,6 @@ class Send {
         
         return activeDestinations
     }
-    
-    //sends system data
-    fileprivate func sendSystemMidi(data:[UInt8], toDestinations:[String]){
-        
-        //route to main send func with system flag on
-        sendMidi(data: data, toDestinations: toDestinations, onChannel: 0, system: true)
-        
-    }
-    
-    //main send func
-    fileprivate func sendMidi(data:[UInt8], toDestinations:[String], onChannel:UInt8, system:Bool = false){
-        
-        //prep empty array of final destinations
-        let activeDestinations:[MIDIEndpointRef] = _getActiveDestinations(targetDestinationNames: toDestinations)
-        
-        //if there are any destinations
-        if (activeDestinations.count > 0){
-            
-            //https://en.wikipedia.org/wiki/Nibble#Low_and_high_nibbles
-            //http://www.blitter.com/~russtopia/MIDI/~jglatt/tech/midispec/noteon.htm
-            
-            //create
-            var packet = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
-            let packetList = UnsafeMutablePointer<MIDIPacketList>.allocate(capacity: 1)
-            
-            //init
-            packet = MIDIPacketListInit(packetList)
-            
-            //grab length
-            let packetLength:Int = data.count
-            
-            //packet byte size
-            let packetByteSize:Int = 1024
-            
-            //set to now for instant delivery
-            let timeStamp:MIDITimeStamp = 0
-            
-            //add packet data to the packet list
-            packet = MIDIPacketListAdd(packetList, packetByteSize, packet, timeStamp, packetLength, data)
-            
-            if (!_bypass){
-                
-                if (noteDebug){
-                    print("MIDI -> destinations:", activeDestinations)
-                }
-                
-                if (debug){
-                    print("MIDI Sending:")
-                    Utils.printContents(ofPacket: packet)
-                }
-                
-                //send to MIDI virtual output
-                if (virtualMidiOutput != 0){
-                    
-                    let status = MIDIReceived(virtualMidiOutput, packetList)
-                    
-                    if status == OSStatus(noErr) {
-                        
-                        if (sysDebug){
-                            print("MIDI -> Success sending from virtual source")
-                        }
-                        
-                    } else {
-                        print("MIDI -> Error sending to virutal port", status)
-                    }
-                    
-                } else {
-                    print("MIDI -> Error: virtual source is 0 during MIDI send")
-                }
-                
-                //normal - send midi out via CoreMIDI
-                //loop through destinations and send midi to them all
-                
-                print("normal midi out", toDestinations)
-                for destEndpointRef in activeDestinations {
-                    
-                    MIDISend(outputPort, destEndpointRef, packetList)
-                }
-                
-            } else {
-                
-                if (noteDebug){
-                    print("MIDI -> Audiobus")
-                }
-                
-                //audiobus bypass - send packetlist out through a notification
-                Utils.postNotification(
-                    name: XvMidiConstants.kXvMidiSendBypass,
-                    userInfo: [
-                        "packetList" : packetList,
-                        "channel" : onChannel,
-                        "system" : system
-                    ]
-                )
-            }
-            
-            
-            
-            
-        } else {
-            if (debug){ print("MIDI -> Error no MIDI destinations during sendMidi") }
-        }
-        
-    }
-    
-    
-    //MARK: -
-    //MARK: RESET
-    internal func shutdown(){
-        
-        if (sysDebug) { print("MIDI -> Shutdown") }
-        
-        //if system is active, then send all notes off command to refreshed destinations
-        if (midiClient != 0 && outputPort != 0) {
-            refreshMidiDestinations()
-            allNotesOff()
-        }
-        
-        MIDIPortDispose(outputPort)
-        outputPort = 0
-        midiClient = 0
-        availableMidiDestinations = []
-        availableMidiDestinationNames = []
-        activeGlobalMidiDestinationNames = []
-    }
-
-    //MARK:- helper sub funcs
     
     fileprivate func _initOutputPort() -> Bool {
         
