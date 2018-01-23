@@ -17,8 +17,8 @@ import CoreMIDI
 
 class Receive {
     
-    fileprivate let debug:Bool = true
-    fileprivate let sysDebug:Bool = true
+    fileprivate let debug:Bool = false
+    fileprivate let sysDebug:Bool = false
     
     //singleton code
     static let sharedInstance = Receive()
@@ -84,10 +84,6 @@ class Receive {
     //MARK: - SOURCES
     internal func getAvailableMidiSourceNames() -> [String] {
         
-        print("")
-        print("")
-        print("///////////////////////////////////////")
-        print(availableMidiSourceNames)
         return availableMidiSourceNames
     }
     

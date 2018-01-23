@@ -148,7 +148,8 @@ class Send {
                 let midiDestination = MIDIGetDestination(d)
                 let midiDestinationName:String = _getName(forMidiDestination: midiDestination)
                 
-                //add destinations except self (no need to have this app's own virtual destination as a target)
+                //add destinations except self, which is the virtual out
+                //the virtual out is always sending midi data and not part of this user selected list of targets
                 if (midiDestinationName != appID) {
                     availableMidiDestinations.append(midiDestination)
                     availableMidiDestinationNames.append(midiDestinationName)
