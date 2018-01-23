@@ -283,7 +283,7 @@ class Receive {
         _ packetList: UnsafePointer<MIDIPacketList>,
         srcConnRefCon: Optional<UnsafeMutableRawPointer>) -> Void {
         
-        print("read block for normal input port")
+        if (debug) { print("MIDI <- normal input readblock") }
         
         //if bypass is off, send along for processing
         if (!bypass) {
@@ -293,11 +293,13 @@ class Receive {
         }
     }
     
+    //although this is the same code as above, it's a seperate read block for easier debugging
     fileprivate func virtualMidiInputReadBlock(
         _ packetList: UnsafePointer<MIDIPacketList>,
         srcConnRefCon: Optional<UnsafeMutableRawPointer>) -> Void {
         
-        print("read block for virtual destination")
+        if (debug) { print("MIDI <- virtual input readblock") }
+        
         //if bypass is off, send along for processing
         if (!bypass) {
             DispatchQueue.main.async(execute: {
