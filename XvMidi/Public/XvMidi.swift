@@ -186,7 +186,6 @@ public class XvMidi {
     
     public func noteOn(channel:UInt8, destinations:[String], note:UInt8, velocity:UInt8){
         
-        //convert values to MIDI usable and send out
         midiSend.noteOn(
             channel: channel,
             destinations: destinations,
@@ -199,6 +198,18 @@ public class XvMidi {
         
         //convert values to MIDI usable and send out
         midiSend.noteOff(channel: channel, destinations: destinations, note: note)
+    }
+    
+    //MARK: - CC
+    public func controlChange(channel:UInt8, destinations:[String], controller:UInt8, value:UInt8){
+        
+        midiSend.controlChange(
+            channel: channel,
+            destinations: destinations,
+            controller: controller,
+            value: value
+        )
+        
     }
     
     

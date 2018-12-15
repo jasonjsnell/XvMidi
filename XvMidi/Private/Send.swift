@@ -228,19 +228,19 @@ class Send {
     internal func noteOn(channel:UInt8, destinations:[String], note:UInt8, velocity:UInt8){
         
         if (noteDebug){
-            print("MIDI -> note on", channel, destinations, note)
+            print("MIDI -> note on", channel, note, velocity)
         }
         
-        //convert it to a hex
+        //convert channel to a hex
         let midiChannelHex:String = Utils.getHexString(fromUInt8: channel)
         
-        //create byte for note on
-        let noteOnByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_ON_PREFIX + midiChannelHex)
+        //create status byte for note on
+        let statusByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_ON_PREFIX + midiChannelHex)
         
         //input incoming data into UInt8 array
         //midi data = status (midi command + channel), note number, velocity
-        let midiData : [UInt8] = [noteOnByte, UInt8(note), UInt8(velocity)]
-        
+        let midiData : [UInt8] = [statusByte, UInt8(note), UInt8(velocity)]
+
         //send data
         sendMidi(data: midiData, toDestinations: destinations, onChannel:channel)
         
@@ -255,12 +255,12 @@ class Send {
         //convert it to a hex
         let midiChannelHex:String = Utils.getHexString(fromUInt8: channel)
         
-        //create byte for note off
-        let noteOffByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_OFF_PREFIX + midiChannelHex)
+        //create status byte for note off
+        let statusByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_OFF_PREFIX + midiChannelHex)
         
         //input incoming data into UInt8 array
         //midi data = status (midi command + channel), note number, velocity
-        let midiData : [UInt8] = [noteOffByte, UInt8(note), NOTE_OFF_VELOCITY]
+        let midiData : [UInt8] = [statusByte, UInt8(note), NOTE_OFF_VELOCITY]
     
         //send midi
         sendMidi(data: midiData, toDestinations: destinations, onChannel: channel)
@@ -286,20 +286,44 @@ class Send {
         //convert midi channel to a hex
         let midiChannelHex:String = Utils.getHexString(fromUInt8: ofChannel)
         
-        //create byte for note off
-        let noteOffByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_OFF_PREFIX + midiChannelHex)
+        //create status byte for note off
+        let statusByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.NOTE_OFF_PREFIX + midiChannelHex)
         
         for noteNum:Int in 0 ..< MIDI_NOTES_MAX {
             
             if (debug){print("MIDI -> Note off: ch =", ofChannel, "note =", noteNum)}
             
             //midi data = status (midi command + channel), note number, velocity
-            let midiData : [UInt8] = [noteOffByte, UInt8(noteNum), NOTE_OFF_VELOCITY]
+            let midiData : [UInt8] = [statusByte, UInt8(noteNum), NOTE_OFF_VELOCITY]
     
             sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames, onChannel: ofChannel)
             
         }
 
+    }
+    
+    //MARK: - CC
+    internal func controlChange(channel:UInt8, destinations:[String], controller:UInt8, value:UInt8){
+        
+        if (noteDebug){
+            print("MIDI -> CC", controller, value, destinations)
+        }
+        
+        //convert channel to a hex
+        let midiChannelHex:String = Utils.getHexString(fromUInt8: channel)
+        
+        //create byte for CC
+        let statusByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.CONTROL_CHANGE_PREFIX + midiChannelHex)
+        
+        //input incoming data into UInt8 array
+        //midi data = status (midi command + channel), note number, velocity
+        let midiData : [UInt8] = [statusByte, UInt8(controller), UInt8(value)]
+        
+        //MIDI Monitor: Control    1    General Purpose 2 (coarse)    81
+
+        //send data
+        sendMidi(data: midiData, toDestinations: destinations, onChannel:channel)
+        
     }
     
     
