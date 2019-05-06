@@ -30,7 +30,7 @@ class Utils {
         
         //convert volume to percentage
         let pct:Float = fromVolume * 100
-        
+
         //convert to number based on velocity max
         let velocity:Int = Int((XvMidiConstants.VELOCITY_MAX * pct) / 100)
         
