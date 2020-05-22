@@ -212,6 +212,15 @@ public class XvMidi {
         
     }
     
+    public func programChange(channel:UInt8, destinations:[String], program:UInt8){
+     
+        midiSend.programChange(
+            channel: channel,
+            destinations: destinations,
+            program: program
+        )
+    }
+    
     
     //MARK: - SYSTEM MESSAGES
     //MARK: start

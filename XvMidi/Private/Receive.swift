@@ -98,7 +98,7 @@ class Receive {
         
         //check for omni
         var omni:Bool = false
-        if let _:Int = withSourceNames.index(of: XvMidiConstants.MIDI_SOURCE_OMNI) {
+        if let _:Int = withSourceNames.firstIndex(of: XvMidiConstants.MIDI_SOURCE_OMNI) {
             omni = true
         }
         
@@ -131,7 +131,7 @@ class Receive {
                 } else {
                     
                     //connect only sources from incoming list
-                    if let _:Int = withSourceNames.index(of: midiSourceName) {
+                    if let _:Int = withSourceNames.firstIndex(of: midiSourceName) {
                         
                         MIDIPortConnectSource(inputPort, midiSource, nil)
                         if (debug) { print("MIDI <- Add", midiSourceName) }

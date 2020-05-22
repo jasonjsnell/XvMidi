@@ -93,6 +93,8 @@ class NotificationBlock {
                 if (debug){ print("MIDI NOTIFY: MIDI I/O error.") }
             break
             
+        @unknown default:
+            if (debug){ print("MIDI NOTIFY: Unknown error.")}
         }
         
     }

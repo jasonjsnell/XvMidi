@@ -302,7 +302,7 @@ class Send {
 
     }
     
-    //MARK: - CC
+    //MARK: - CONTROL CHANGE
     internal func controlChange(channel:UInt8, destinations:[String], controller:UInt8, value:UInt8){
         
         if (noteDebug){
@@ -316,11 +316,33 @@ class Send {
         let statusByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.CONTROL_CHANGE_PREFIX + midiChannelHex)
         
         //input incoming data into UInt8 array
-        //midi data = status (midi command + channel), note number, velocity
+        //midi data = status (midi command + channel), controller, value
         let midiData : [UInt8] = [statusByte, UInt8(controller), UInt8(value)]
         
         //MIDI Monitor: Control    1    General Purpose 2 (coarse)    81
 
+        //send data
+        sendMidi(data: midiData, toDestinations: destinations, onChannel:channel)
+        
+    }
+    
+    //MARK: - PROGRAM CHANGE
+    internal func programChange(channel:UInt8, destinations:[String], program:UInt8){
+        
+        if (noteDebug){
+            print("MIDI -> PC", program, destinations)
+        }
+        
+        //convert channel to a hex
+        let midiChannelHex:String = Utils.getHexString(fromUInt8: channel)
+        
+        //create byte for program change
+        let statusByte:UInt8 = Utils.getByte(fromStr: XvMidiConstants.PROGRAM_CHANGE_PREFIX + midiChannelHex)
+        
+        //input incoming data into UInt8 array
+        //midi data = status (midi command + channel), progam number
+        let midiData : [UInt8] = [statusByte, UInt8(program)]
+        
         //send data
         sendMidi(data: midiData, toDestinations: destinations, onChannel:channel)
         
@@ -345,12 +367,15 @@ class Send {
         //https://en.wikipedia.org/wiki/Nibble#Low_and_high_nibbles
         //http://www.blitter.com/~russtopia/MIDI/~jglatt/tech/midispec/noteon.htm
         
+        //packet memory management
+        //http://www.gneuron.com/?p=96
+        
         //create
-        var packet = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
-        let packetList = UnsafeMutablePointer<MIDIPacketList>.allocate(capacity: 1)
+        //var packet:UnsafeMutablePointer<MIDIPacket> = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
+        let packetList:UnsafeMutablePointer<MIDIPacketList> = UnsafeMutablePointer<MIDIPacketList>.allocate(capacity: 1)
         
         //init
-        packet = MIDIPacketListInit(packetList)
+        var packet = MIDIPacketListInit(packetList)
         
         //grab length
         let packetLength:Int = data.count
@@ -359,7 +384,7 @@ class Send {
         let packetByteSize:Int = 1024
         
         //set to now for instant delivery
-        let timeStamp:MIDITimeStamp = 0
+        let timeStamp:MIDITimeStamp = MIDITimeStamp(0)
         
         //add packet data to the packet list
         packet = MIDIPacketListAdd(packetList, packetByteSize, packet, timeStamp, packetLength, data)
@@ -423,6 +448,15 @@ class Send {
                 ]
             )
         }
+        
+        //deinit and dealloc packet list
+        packetList.deinitialize(count: 1)
+        packetList.deallocate()
+        
+        // deinit packet
+        packet.deinitialize(count: 1)
+        
+    
     }
     
     
@@ -459,7 +493,7 @@ class Send {
             let midiDestinationName:String = _getName(forMidiDestination: midiDestination)
             
             //if that name has an index in the incoming destinations...
-            if let _:Int = targetDestinationNames.index(of: midiDestinationName){
+            if let _:Int = targetDestinationNames.firstIndex(of: midiDestinationName){
                 
                 // then add it to the final array
                 activeDestinations.append(midiDestination)
@@ -470,7 +504,7 @@ class Send {
         if (activeDestinations.count == 0){
             
             //check to see if omni was selected by user in global settings
-            if let _:Int = targetDestinationNames.index(of: XvMidiConstants.MIDI_DESTINATION_OMNI){
+            if let _:Int = targetDestinationNames.firstIndex(of: XvMidiConstants.MIDI_DESTINATION_OMNI){
                 
                 //if so, all destinations are the target
                 activeDestinations = availableMidiDestinations
