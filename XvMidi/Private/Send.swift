@@ -12,6 +12,11 @@ import CoreMIDI
 //http://wiki.cockos.com/wiki/index.php/MIDI_Specification
 //https://ccrma.stanford.edu/~craig/articles/linuxmidi/misc/essenmidi.html
 
+struct XvMidiDestination {
+    var name:String
+    var ref:MIDIEndpointRef
+}
+
 class Send {
     
     fileprivate let debug:Bool = false
@@ -42,11 +47,8 @@ class Send {
     fileprivate var outputPort = MIDIPortRef()
     fileprivate var virtualMidiOutput:MIDIEndpointRef = MIDIEndpointRef()
     
-    fileprivate var availableMidiDestinations:[MIDIEndpointRef] = [] //all available destinations
-    fileprivate var availableMidiDestinationNames:[String] = []
-    fileprivate var activeGlobalMidiDestinationNames:[String] = [] //destinations selected by user
-    
-    
+    fileprivate var allDestinations:[XvMidiDestination] = []
+    fileprivate var userDestinations:[XvMidiDestination] = [] //destinations selected by user
     
     //MIDI constants
     fileprivate let MIDI_CHANNEL_TOTAL:Int = 16
@@ -64,7 +66,7 @@ class Send {
         self.appID = withAppID
         
         //grab local version of client so disconnect can happen in reset func
-        midiClient = withClient
+        self.midiClient = withClient
         
         //make sure incoming client is valid
         if (midiClient != 0) {
@@ -73,7 +75,7 @@ class Send {
             if (_initOutputPort() && _initVirtualMidiOut()){
                 
                 //sets the user selected destinations
-                setActiveGlobalMidiDestinations(withDestinationNames: withDestinatonNames)
+                setUserDestinations(with: withDestinatonNames)
                 
                 if (sysDebug) { print("MIDI -> Launch") }
                 return true
@@ -96,72 +98,73 @@ class Send {
    
     //MARK: - DESTINATIONS
     internal func getAvailableMidiDestinationNames() -> [String] {
-        
-        return availableMidiDestinationNames
+
+        var names:[String] = []
+        for dest in allDestinations {
+            names.append(dest.name)
+        }
+        return names
     }
     
-    internal func setActiveGlobalMidiDestinations(withDestinationNames:[String]){
+    internal func setUserDestinations(with destinationNames:[String]){
         
-        //clear array
-        activeGlobalMidiDestinationNames = []
+        //clear user list and replace with incoming
+        userDestinations = []
         
         //refresh list of destinations from MIDI system
-        refreshMidiDestinations()
+        refreshDestinations()
         
         //loop through incoming names
-        for name in withDestinationNames {
+        for name in destinationNames {
             
             //if the name is omni, then add all the names and stop the loop
             if (name == XvMidiConstants.MIDI_DESTINATION_OMNI){
                 
-                activeGlobalMidiDestinationNames = availableMidiDestinationNames
+                userDestinations = allDestinations
                 break
             }
             
-            //if the name is in the available midi destinations
-            if availableMidiDestinationNames.contains(name){
+            //loop through each avail dest
+            for availableDestination in allDestinations {
                 
-                //add it to the active list
-                activeGlobalMidiDestinationNames.append(name)
+                //if the name is in the available destinations
+                if (availableDestination.name == name) {
+                    
+                    //add it to the active list
+                    userDestinations.append(availableDestination)
+                    break
+                }
             }
-            
         }
-        
     }
     
-    internal func refreshMidiDestinations() {
+    internal func refreshDestinations() {
         
-        //reset all
-        availableMidiDestinations = []
-        availableMidiDestinationNames = []
+        //reset
+        allDestinations = []
       
         if (debug) {print("MIDI -> Refresh, # of destinations: \(MIDIGetNumberOfDestinations())")}
-        
         
         //check destinations
         if (MIDIGetNumberOfDestinations() > 0){
             
             //loop through destinations and names and save in arrays
             
-            for d:Int in 0 ..< MIDIGetNumberOfDestinations(){
+            for i in (0 ..< MIDIGetNumberOfDestinations()){
                 
-                let midiDestination = MIDIGetDestination(d)
-                let midiDestinationName:String = _getName(forMidiDestination: midiDestination)
+                let midiDestination = MIDIGetDestination(i)
+                let midiDestinationName:String = _getName(for: midiDestination)
                 
                 //add destinations except self, which is the virtual out
                 //the virtual out is always sending midi data and not part of this user selected list of targets
                 if (midiDestinationName != appID) {
-                    availableMidiDestinations.append(midiDestination)
-                    availableMidiDestinationNames.append(midiDestinationName)
+                    allDestinations.append(XvMidiDestination(name: midiDestinationName, ref: midiDestination))
                 }
-                
             }
             
             if (debug) {
-                print("MIDI -> MIDI Dest:    ", availableMidiDestinations)
-                print("MIDI -> MIDI Names:   ", availableMidiDestinationNames)
+                print("MIDI -> MIDI Dest:    ", allDestinations)
             }
-            
             
         } else {
             if (debug) { print("MIDI -> ERROR no destinations detected") }
@@ -177,7 +180,7 @@ class Send {
         
         //MIDI Start command
         let midiData : [UInt8] = [0xFA]
-        sendSystemMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
+        sendSystemMidi(data: midiData, toDestinations: userDestinations)
         
     }
     
@@ -187,7 +190,7 @@ class Send {
         
         //MIDI Stop command
         let midiData : [UInt8] = [0xFC]
-        sendSystemMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
+        sendSystemMidi(data: midiData, toDestinations: userDestinations)
         
     }
     
@@ -211,7 +214,7 @@ class Send {
         if(debug){ print("MIDI -> Sequencer move to", sixteenthPositionByte, phrasePositionByte) }
         
         let midiData : [UInt8] = [0xF2, sixteenthPositionByte, phrasePositionByte]
-        sendSystemMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames)
+        sendSystemMidi(data: midiData, toDestinations: userDestinations)
         
         
     }
@@ -221,14 +224,17 @@ class Send {
     //called by sequencer metronome
     internal func sendMidiClock(){
         let clockData:[UInt8] = [0xF8]
-        sendSystemMidi(data: clockData, toDestinations: activeGlobalMidiDestinationNames)
+        sendSystemMidi(data: clockData, toDestinations: userDestinations)
     }
     
     //MARK: - NOTES
     internal func noteOn(channel:UInt8, destinations:[String], note:UInt8, velocity:UInt8){
         
+        //get objects from incoming name strings
+        let destinationObjs:[XvMidiDestination] = _getDestinations(from: destinations)
+        
         if (noteDebug){
-            print("MIDI -> note on", channel, note, velocity)
+            print("MIDI -> note on", channel, destinationObjs, note, velocity)
         }
         
         //convert channel to a hex
@@ -240,16 +246,19 @@ class Send {
         //input incoming data into UInt8 array
         //midi data = status (midi command + channel), note number, velocity
         let midiData : [UInt8] = [statusByte, UInt8(note), UInt8(velocity)]
-
+        
         //send data
-        sendMidi(data: midiData, toDestinations: destinations, onChannel:channel)
+        sendMidi(data: midiData, toDestinations: destinationObjs, onChannel:channel)
         
     }
     
     internal func noteOff(channel:UInt8, destinations:[String], note:UInt8){
         
+        //get objects from incoming name strings
+        let destinationObjs:[XvMidiDestination] = _getDestinations(from: destinations)
+        
         if (noteDebug){
-            print("MIDI -> note off", channel, destinations, note)
+            print("MIDI -> note off", channel, destinationObjs, note)
         }
         
         //convert it to a hex
@@ -263,22 +272,18 @@ class Send {
         let midiData : [UInt8] = [statusByte, UInt8(note), NOTE_OFF_VELOCITY]
     
         //send midi
-        sendMidi(data: midiData, toDestinations: destinations, onChannel: channel)
+        sendMidi(data: midiData, toDestinations: destinationObjs, onChannel: channel)
         
     }
     
     internal func allNotesOff(){
         
-        if (debug){
-            print("MIDI -> all notes off")
-        }
-        
+        if (debug){ print("MIDI -> all notes off") }
         
         for channel:Int in 0..<MIDI_CHANNEL_TOTAL {
             
             allNotesOff(ofChannel: UInt8(channel))
         }
-        
     }
     
     internal func allNotesOff(ofChannel:UInt8) {
@@ -296,17 +301,18 @@ class Send {
             //midi data = status (midi command + channel), note number, velocity
             let midiData : [UInt8] = [statusByte, UInt8(noteNum), NOTE_OFF_VELOCITY]
     
-            sendMidi(data: midiData, toDestinations: activeGlobalMidiDestinationNames, onChannel: ofChannel)
-            
+            sendMidi(data: midiData, toDestinations: userDestinations, onChannel: ofChannel)
         }
-
     }
     
     //MARK: - CONTROL CHANGE
     internal func controlChange(channel:UInt8, destinations:[String], controller:UInt8, value:UInt8){
         
+        //get objects from incoming name strings
+        let destinationObjs:[XvMidiDestination] = _getDestinations(from: destinations)
+        
         if (noteDebug){
-            print("MIDI -> CC", controller, value, destinations)
+            print("MIDI -> CC", controller, value, destinationObjs)
         }
         
         //convert channel to a hex
@@ -320,17 +326,20 @@ class Send {
         let midiData : [UInt8] = [statusByte, UInt8(controller), UInt8(value)]
         
         //MIDI Monitor: Control    1    General Purpose 2 (coarse)    81
-
+        
         //send data
-        sendMidi(data: midiData, toDestinations: destinations, onChannel:channel)
+        sendMidi(data: midiData, toDestinations: destinationObjs, onChannel:channel)
         
     }
     
     //MARK: - PROGRAM CHANGE
     internal func programChange(channel:UInt8, destinations:[String], program:UInt8){
         
+        //get objects from incoming name strings
+        let destinationObjs:[XvMidiDestination] = _getDestinations(from: destinations)
+    
         if (noteDebug){
-            print("MIDI -> PC", program, destinations)
+            print("MIDI -> PC", program, destinationObjs)
         }
         
         //convert channel to a hex
@@ -342,17 +351,16 @@ class Send {
         //input incoming data into UInt8 array
         //midi data = status (midi command + channel), progam number
         let midiData : [UInt8] = [statusByte, UInt8(program)]
-        
+       
         //send data
-        sendMidi(data: midiData, toDestinations: destinations, onChannel:channel)
-        
+        sendMidi(data: midiData, toDestinations: destinationObjs, onChannel:channel)
     }
     
     
     //MARK: - MIDI OUT
     
     //sends system data
-    fileprivate func sendSystemMidi(data:[UInt8], toDestinations:[String]){
+    fileprivate func sendSystemMidi(data:[UInt8], toDestinations:[XvMidiDestination]){
         
         //route to main send func with system flag on
         sendMidi(data: data, toDestinations: toDestinations, onChannel: 0, system: true)
@@ -360,7 +368,7 @@ class Send {
     }
     
     //main send func
-    fileprivate func sendMidi(data:[UInt8], toDestinations:[String], onChannel:UInt8, system:Bool = false){
+    fileprivate func sendMidi(data:[UInt8], toDestinations:[XvMidiDestination], onChannel:UInt8, system:Bool = false){
         
         //prepare midi packet
         
@@ -389,7 +397,7 @@ class Send {
         //add packet data to the packet list
         packet = MIDIPacketListAdd(packetList, packetByteSize, packet, timeStamp, packetLength, data)
         
-        if (debug){
+        if (noteDebug){
             print("MIDI Sending:")
             Utils.printContents(ofPacket: packet)
         }
@@ -418,17 +426,13 @@ class Send {
         if (!_bypass){
             
             //MARK: Standard MIDI out
-            //send to user selected, active destinations
-            
-            //get array of active destinations
-            let activeDestinations:[MIDIEndpointRef] = _getActiveDestinations(targetDestinationNames: toDestinations)
-            
-            if (noteDebug){ print("MIDI -> destinations:", activeDestinations) }
+          
+            if (noteDebug){ print("MIDI -> destinations:", userDestinations) }
             
             //loop through destinations and send midi to them all
-            for destEndpointRef in activeDestinations {
-                
-                MIDISend(outputPort, destEndpointRef, packetList)
+            
+            for destination in toDestinations {
+                MIDISend(outputPort, destination.ref, packetList)
             }
             
         } else {
@@ -455,7 +459,6 @@ class Send {
         
         // deinit packet
         packet.deinitialize(count: 1)
-        
     
     }
     
@@ -468,58 +471,18 @@ class Send {
         
         //if system is active, then send all notes off command to refreshed destinations
         if (midiClient != 0 && outputPort != 0) {
-            refreshMidiDestinations()
+            refreshDestinations()
             allNotesOff()
         }
         
         MIDIPortDispose(outputPort)
         outputPort = 0
         midiClient = 0
-        availableMidiDestinations = []
-        availableMidiDestinationNames = []
-        activeGlobalMidiDestinationNames = []
+        allDestinations = []
+        userDestinations = []
     }
 
     //MARK:- helper sub funcs
-    
-    fileprivate func _getActiveDestinations(targetDestinationNames:[String]) -> [MIDIEndpointRef] {
-        
-        var activeDestinations:[MIDIEndpointRef] = []
-        
-        //loop through available destinations
-        for midiDestination in availableMidiDestinations {
-            
-            //get name for each
-            let midiDestinationName:String = _getName(forMidiDestination: midiDestination)
-            
-            //if that name has an index in the incoming destinations...
-            if let _:Int = targetDestinationNames.firstIndex(of: midiDestinationName){
-                
-                // then add it to the final array
-                activeDestinations.append(midiDestination)
-            }
-        }
-        
-        //if there are no final destinations
-        if (activeDestinations.count == 0){
-            
-            //check to see if omni was selected by user in global settings
-            if let _:Int = targetDestinationNames.firstIndex(of: XvMidiConstants.MIDI_DESTINATION_OMNI){
-                
-                //if so, all destinations are the target
-                activeDestinations = availableMidiDestinations
-                
-            } else {
-                
-                Utils.postNotification(
-                    name: XvMidiConstants.kXvMidiNoDestinationError,
-                    userInfo: nil
-                )
-            }
-        }
-        
-        return activeDestinations
-    }
     
     fileprivate func _initOutputPort() -> Bool {
         
@@ -594,22 +557,41 @@ class Send {
             if (sysDebug) { print("MIDI <- Virtual dest already created") }
             return true
         }
+    }
+    
+    fileprivate func _getDestinations(from names:[String]) -> [XvMidiDestination] {
         
+        if (names.count == 0 || names.contains(XvMidiConstants.MIDI_DESTINATION_OMNI)) {
+            return userDestinations
+        }
+        
+        var destinations:[XvMidiDestination] = []
+        
+        for availableDestination in allDestinations {
+            
+            for name in names {
+                if (name == availableDestination.name) {
+                    destinations.append(availableDestination)
+                    break
+                }
+            }
+        }
+        
+        return destinations
     }
     
     
-    fileprivate func _getName(forMidiDestination:MIDIEndpointRef) -> String {
+    fileprivate func _getName(for destination:MIDIEndpointRef) -> String {
         
         var midiDestinationName : Unmanaged<CFString>?
         var status = OSStatus(noErr)
-        status = MIDIObjectGetStringProperty(forMidiDestination, kMIDIPropertyDisplayName, &midiDestinationName)
+        status = MIDIObjectGetStringProperty(destination, kMIDIPropertyDisplayName, &midiDestinationName)
         if status == noErr {
             let midiDestinationDisplayName = midiDestinationName!.takeRetainedValue() as String
             return midiDestinationDisplayName
         }
         
         return ""
-        
     }
 
     

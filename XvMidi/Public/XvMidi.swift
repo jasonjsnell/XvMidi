@@ -27,7 +27,7 @@ import Foundation
 import CoreMIDI
 
 
-public class XvMidi {
+public class XvMidi:NotificationBlockObserver {
     
     fileprivate var debug:Bool = false
     
@@ -109,7 +109,9 @@ public class XvMidi {
             
             //MARK: INIT MIDI CLIENT
             //create notifcation blocks for watching messages
+            NotificationBlock.sharedInstance.observer = self
             let notifyBlock: MIDINotifyBlock = NotificationBlock.sharedInstance.notifyBlock
+        
             
             //create MIDI client
             status = MIDIClientCreateWithBlock("com.jasonjsnell."+appID+".MyMIDIClient" as CFString, &midiClient, notifyBlock)
@@ -144,7 +146,7 @@ public class XvMidi {
         } else {
             
             if (debug){ print("MIDI <> Session already activated, but refresh destinations") }
-            midiSend.refreshMidiDestinations()
+            midiSend.refreshDestinations()
             return true
         }        
     }
@@ -184,7 +186,7 @@ public class XvMidi {
     
     //MARK: - NOTES
     
-    public func noteOn(channel:UInt8, destinations:[String], note:UInt8, velocity:UInt8){
+    public func noteOn(channel:UInt8, destinations:[String] = [], note:UInt8, velocity:UInt8){
         
         midiSend.noteOn(
             channel: channel,
@@ -194,14 +196,14 @@ public class XvMidi {
         )
     }
     
-    public func noteOff(channel:UInt8, destinations:[String], note:UInt8){
+    public func noteOff(channel:UInt8, destinations:[String] = [], note:UInt8){
         
         //convert values to MIDI usable and send out
         midiSend.noteOff(channel: channel, destinations: destinations, note: note)
     }
     
     //MARK: - CC
-    public func controlChange(channel:UInt8, destinations:[String], controller:UInt8, value:UInt8){
+    public func controlChange(channel:UInt8, destinations:[String] = [], controller:UInt8, value:UInt8){
         
         midiSend.controlChange(
             channel: channel,
@@ -212,7 +214,7 @@ public class XvMidi {
         
     }
     
-    public func programChange(channel:UInt8, destinations:[String], program:UInt8){
+    public func programChange(channel:UInt8, destinations:[String] = [], program:UInt8){
      
         midiSend.programChange(
             channel: channel,
@@ -273,7 +275,7 @@ public class XvMidi {
     
     public func refreshMidiDestinations(){
  
-        midiSend.refreshMidiDestinations()
+        midiSend.refreshDestinations()
     }
     
     
@@ -283,9 +285,9 @@ public class XvMidi {
         return midiSend.getAvailableMidiDestinationNames()
     }
     
-    public func setActiveGlobalMidiDestinations(withDestinationNames:[String]){
+    public func setUserMidiDestinations(with names:[String]){
         
-        midiSend.setActiveGlobalMidiDestinations(withDestinationNames: withDestinationNames)
+        midiSend.setUserDestinations(with: names)
     }
     
     //MARK: midi sources
@@ -301,6 +303,11 @@ public class XvMidi {
         return midiReceive.getAvailableMidiSourceNames()
     }
     
+    //MARK: - NOTIFICATION BLOCK
+    public func midiSetupChanged() {
+        print("MIDI setup has changed")
+        midiSend.refreshDestinations()
+    }
     
     //MARK: - RECEIVE BLOCK
     //called by audiobus receive block

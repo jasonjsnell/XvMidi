@@ -10,10 +10,21 @@
 import Foundation
 import CoreMIDI
 
+public protocol NotificationBlockObserver:class {
+    
+    func midiSetupChanged()
+    
+}
+
 class NotificationBlock {
     
-    internal var debug:Bool = false
+    internal var debug:Bool = true
+    fileprivate let debugDetail:Bool = false
+    
     fileprivate let settings:Settings = Settings.sharedInstance
+    
+    //object that listens to updates from this notification block
+    public weak var observer:NotificationBlockObserver?
     
     //singleton code
     static let sharedInstance = NotificationBlock()
@@ -36,11 +47,12 @@ class NotificationBlock {
                 
                 let m = $0.pointee
                 
-                if (debug){
+                if (debugDetail){
                     print("MIDI NOTIFY: id \(m.messageID) / size \(m.messageSize) / object \(m.object) / objectType  \(m.objectType)")
                 }
             }
             
+            observer?.midiSetupChanged() //let XvMidi know the setup has changed
             outputCurrentMidiStatus()
             
             break
@@ -53,7 +65,7 @@ class NotificationBlock {
                 
                 let m = $0.pointee
                 
-                if (debug){
+                if (debugDetail){
                     print("MIDI NOTIFY: id \(m.messageID) / size \(m.messageSize)")
                     print("MIDI NOTIFY: child \(m.child) / child type \(m.childType)")
                     print("MIDI NOTIFY: parent \(m.parent) / parentType \(m.parentType)")
@@ -74,7 +86,7 @@ class NotificationBlock {
                 
                 let m = $0.pointee
                 
-                if (debug){
+                if (debugDetail){
                     print("MIDI NOTIFY: id \(m.messageID) / size \(m.messageSize) / object \(m.object) / objectType  \(m.objectType)")
                 }
             }
@@ -101,6 +113,7 @@ class NotificationBlock {
     
     fileprivate func outputCurrentMidiStatus(){
         
+        print("")
         let sync = settings.midiSync
         let clockReceive:String = XvMidiConstants.MIDI_CLOCK_RECEIVE
         let clockSend:String = XvMidiConstants.MIDI_CLOCK_SEND
