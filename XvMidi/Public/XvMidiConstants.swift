@@ -43,6 +43,7 @@ public class XvMidiConstants {
     public static let MIDI_CLOCK_NONE:String = "midiClockNone"
     
     public static let MIDI_DESTINATION_OMNI:String = "Omni"
+    public static let MIDI_DESTINATION_VIRTUAL:String = "Virtual"
     public static let MIDI_SOURCE_OMNI:String = "Omni"
     
     //translations into MIDI friendly data

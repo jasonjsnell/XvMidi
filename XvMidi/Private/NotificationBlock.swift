@@ -18,7 +18,7 @@ public protocol NotificationBlockObserver:class {
 
 class NotificationBlock {
     
-    internal var debug:Bool = true
+    internal var debug:Bool = false
     fileprivate let debugDetail:Bool = false
     
     fileprivate let settings:Settings = Settings.sharedInstance

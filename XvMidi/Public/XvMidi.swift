@@ -264,9 +264,9 @@ public class XvMidi:NotificationBlockObserver {
     
     //MARK: midi clock
     //User input -> sequencer -> MIDI IO -> MIDI SEND
-    public func sendMidiClock(){
+    public func sendMidiClock(destinations:[String] = []){
         if (settings.midiSync == XvMidiConstants.MIDI_CLOCK_SEND){
-            midiSend.sendMidiClock()
+            midiSend.sendMidiClock(destinations: destinations)
         }
     }
     
@@ -305,7 +305,6 @@ public class XvMidi:NotificationBlockObserver {
     
     //MARK: - NOTIFICATION BLOCK
     public func midiSetupChanged() {
-        print("MIDI setup has changed")
         midiSend.refreshDestinations()
     }
     

@@ -136,6 +136,8 @@ class Send {
                 }
             }
         }
+        
+        print("MIDI -> User destinations", userDestinations)
     }
     
     internal func refreshDestinations() {
@@ -222,9 +224,11 @@ class Send {
     
     //MARK:- MIDI CLOCK
     //called by sequencer metronome
-    internal func sendMidiClock(){
+    internal func sendMidiClock(destinations:[String] = []){
+        
         let clockData:[UInt8] = [0xF8]
-        sendSystemMidi(data: clockData, toDestinations: userDestinations)
+        let destinationObjs:[XvMidiDestination] = _getDestinations(from: destinations)
+        sendSystemMidi(data: clockData, toDestinations: destinationObjs)
     }
     
     //MARK: - NOTES
