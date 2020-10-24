@@ -117,6 +117,13 @@ class Send {
         //loop through incoming names
         for name in destinationNames {
             
+            //if using virtual only, then keep user destinations blank
+            if (name == XvMidiConstants.MIDI_DESTINATION_VIRTUAL_ONLY) {
+                userDestinations = []
+                print("MIDI -> User destinations: Virtual only")
+                return
+            }
+            
             //if the name is omni, then add all the names and stop the loop
             if (name == XvMidiConstants.MIDI_DESTINATION_OMNI){
                 
@@ -431,7 +438,7 @@ class Send {
             
             //MARK: Standard MIDI out
           
-            if (noteDebug){ print("MIDI -> destinations:", userDestinations) }
+            if (noteDebug){ print("MIDI -> destinations:", toDestinations) }
             
             //loop through destinations and send midi to them all
             
@@ -564,6 +571,11 @@ class Send {
     }
     
     fileprivate func _getDestinations(from names:[String]) -> [XvMidiDestination] {
+        
+        //if using virtual only, return blank for real world destinations
+        if (names.contains(XvMidiConstants.MIDI_DESTINATION_VIRTUAL_ONLY)) {
+            return []
+        }
         
         if (names.count == 0 || names.contains(XvMidiConstants.MIDI_DESTINATION_OMNI)) {
             return userDestinations

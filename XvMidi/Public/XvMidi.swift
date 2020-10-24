@@ -29,6 +29,8 @@ import CoreMIDI
 
 public class XvMidi:NotificationBlockObserver {
     
+    
+    
     fileprivate var debug:Bool = false
     
     //singleton code
