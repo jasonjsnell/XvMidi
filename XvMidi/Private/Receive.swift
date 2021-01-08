@@ -35,7 +35,7 @@ class Receive {
         set {_bypass = newValue}
     }
     
-    fileprivate var midiClient:MIDIClientRef = 0
+    fileprivate var midiClient:MIDIClientRef = MIDIClientRef()
     fileprivate let settings:Settings = Settings.sharedInstance
     
     //ports, endpoints, source
@@ -69,15 +69,12 @@ class Receive {
                 
                 print("MIDI <- ERROR initializing input port")
                 return false
-                
             }
-            
-            
+                    
         } else {
             
             print("MIDI <- ERROR client not valid")
             return false
-            
         }
     }
     
@@ -119,7 +116,6 @@ class Receive {
                     
                     //add source name to the available sources list
                     availableMidiSourceNames.append(midiSourceName)
-                
                 }
                 
                 //if omni, add all except virtual input
@@ -135,15 +131,14 @@ class Receive {
                         
                         MIDIPortConnectSource(inputPort, midiSource, nil)
                         if (debug) { print("MIDI <- Add", midiSourceName) }
-                        
                     }
                 }
             }
     
             if (debug) {
-                
                 print("MIDI <- MIDI Available names:   ", availableMidiSourceNames)
             }
+            
         } else {
             
             if (debug) { print("MIDI <- ERROR no sources detected") }
@@ -153,21 +148,21 @@ class Receive {
     
     //MARK: RECEIVING
     //called by internal read block and audiobus read block
+    
     internal func process(packetList: UnsafePointer<MIDIPacketList>){
         
         let packets = packetList.pointee
         let packet:MIDIPacket = packets.packet
-  
-        var ap = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
+        
+        var ap:UnsafeMutablePointer<MIDIPacket> = UnsafeMutablePointer<MIDIPacket>.allocate(capacity: 1)
         ap.initialize(to: packet)
         
-        //loop through packets. Sometimes a note on /off is in the same packet as timeclock
-        for _ in 0 ..< packets.numPackets {
-            
-            if (debug) {
-                print("MIDI Receiving:")
-                Utils.printContents(ofPacket: ap)
-            }
+        var numPackets:UInt32 = packets.numPackets
+        if (numPackets == 0) { numPackets = 1} //fix for OS 11
+        
+        //Utils.printContents(ofPacket: ap)
+        
+        for _ in 0 ..< numPackets {
             
             let status:UInt8 = packet.data.0
             let rawStatus:UInt8 = status & 0xF0 // without channel
@@ -267,17 +262,16 @@ class Receive {
            
             //prep next round
             ap = MIDIPacketNext(ap)
-            
         }
-        
     }
+    
 
     //MARK: - READ BLOCKS
     // read block - catch packet list from background thread and process it in foreground
     
     fileprivate func inputPortReadBlock(
         _ packetList: UnsafePointer<MIDIPacketList>,
-        srcConnRefCon: Optional<UnsafeMutableRawPointer>) -> Void {
+        srcConnRefCon: UnsafeMutableRawPointer?) -> Void {
         
         if (debug) { print("MIDI <- normal input readblock") }
         
@@ -292,7 +286,7 @@ class Receive {
     //although this is the same code as above, it's a seperate read block for easier debugging
     fileprivate func virtualMidiInputReadBlock(
         _ packetList: UnsafePointer<MIDIPacketList>,
-        srcConnRefCon: Optional<UnsafeMutableRawPointer>) -> Void {
+        srcConnRefCon: UnsafeMutableRawPointer?) -> Void {
         
         if (debug) { print("MIDI <- virtual input readblock") }
         
@@ -326,7 +320,6 @@ class Receive {
         inputPort = 0
         midiClient = 0
         availableMidiSourceNames = []
-        
     }
     
     
@@ -344,7 +337,8 @@ class Receive {
                 midiClient,
                 "com.jasonjsnell."+appID+".InputPort" as CFString,
                 &inputPort,
-                inputPortReadBlock)
+                inputPortReadBlock
+            )
             
             //error checking
             if status == OSStatus(noErr) {
@@ -361,7 +355,6 @@ class Receive {
                 }
                 
                 return false
-                
             }
             
         } else {
@@ -379,7 +372,7 @@ class Receive {
         //create input port with read block (that handles the incoming traffic)
         if (virtualMidiInput == 0){
             
-            status = MIDIDestinationCreateWithBlock(
+            status = MIDIInputPortCreateWithBlock(
                 midiClient,
                 appID as CFString,
                 &virtualMidiInput,
@@ -403,7 +396,6 @@ class Receive {
                 }
                 
                 return false
-                
             }
           
         } else {
@@ -423,10 +415,7 @@ class Receive {
         }
         
         return ""
-        
     }
-    
-    
     
     fileprivate func _disconnectAllSources(){
         
@@ -434,11 +423,6 @@ class Receive {
             
             let midiSource:MIDIEndpointRef = MIDIGetSource(s)
             MIDIPortDisconnectSource(inputPort, midiSource)
-            
         }
     }
-    
-    
-
-
 }

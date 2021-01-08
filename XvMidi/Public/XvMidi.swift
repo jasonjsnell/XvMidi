@@ -26,11 +26,11 @@ Other classes -> MIDI IO -> MIDI Send -> MIDI Send Clock
 import Foundation
 import CoreMIDI
 
+//TODO: change notifications model to delegate model
 
 public class XvMidi:NotificationBlockObserver {
     
-    
-    
+
     fileprivate var debug:Bool = false
     
     //singleton code

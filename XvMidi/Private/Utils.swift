@@ -79,6 +79,7 @@ class Utils {
     
     //MARK: - OUTPUT
     
+    //deprecated
     class func printContents(ofPacket:UnsafeMutablePointer<MIDIPacket>){
         
         let p = ofPacket.pointee
@@ -95,6 +96,31 @@ class Utils {
         let d2:UInt8 = p.data.2
         
         print("MIDI Packet: CH:", (channel+1), "| Status:", statusHex, "/", rawStatus, "|", d1Hex, "/", d1, "|", d2Hex, "/", d2)
+    }
+    
+    class func printContents(ofEventPacket:UnsafeMutablePointer<MIDIEventPacket>){
+        
+        let p = ofEventPacket.pointee
+        
+        print("")
+        print("p", p)
+        
+      
+        print("p.words.0", p.words.0)
+        print("p.words.1", p.words.1)
+        print("p.words.2", p.words.2)
+        /*
+         let statusHex = String(format:"0x%X", p.data.0)
+        let d1Hex = String(format:"0x%X", p.data.1)
+        let d2Hex = String(format:"0x%X", p.data.2)
+        
+        let status:UInt8 = p.data.0
+        let channel:UInt8 = status & 0x0F
+        let rawStatus:UInt8 = status & 0xF0 // without channel
+        let d1:UInt8 = p.data.1
+        let d2:UInt8 = p.data.2*/
+        
+        //print("MIDI Packet: CH:", (channel+1), "| Status:", statusHex, "/", rawStatus, "|", d1Hex, "/", d1, "|", d2Hex, "/", d2)
     }
     
     //used to show OSStatus errors from interface
