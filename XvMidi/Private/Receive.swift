@@ -172,6 +172,8 @@ class Receive {
             //let rawStatus:UInt8 = status & 0xF0 // without channel
             let channel:UInt8 = status & 0x0F
             
+            //print("status", status, "raw", rawStatus, "d1", d1, "d2", d2, "channel", channel)
+            
             //MIDI system / sync messages
             if (settings.midiSync == XvMidiConstants.MIDI_CLOCK_RECEIVE) {
                 
@@ -196,7 +198,6 @@ class Receive {
                     Utils.postNotification(
                         name: XvMidiConstants.kXvMidiReceiveSystemPosition,
                         userInfo: ["newPosition" : totalSteps])
-                    
                 }
                 
                 //midi stop (ableton, maschine)
@@ -251,12 +252,21 @@ class Receive {
                 )
             }
             
-            //MARK: - CONTROL CHANGES: DATA ENTRY
+            //MARK: - CONTROL CHANGES
             if (rawStatus == XvMidiConstants.CONTROL_CHANGE) {
                 
                 Utils.postNotification(
                     name: XvMidiConstants.kXvMidiReceiveControlChange,
                     userInfo: ["channel" : channel, "control" : d1, "value" : d2]
+                )
+            }
+            
+            //MARK: - PROGRAM CHANGES
+            if (rawStatus == XvMidiConstants.PROGRAM_CHANGE) {
+                
+                Utils.postNotification(
+                    name: XvMidiConstants.kXvMidiReceiveProgramChange,
+                    userInfo: ["channel" : channel, "program" : d1]
                 )
             }
            

@@ -350,7 +350,7 @@ class Send {
         let destinationObjs:[XvMidiDestination] = _getDestinations(from: destinations)
     
         if (noteDebug){
-            print("MIDI -> PC", program, destinationObjs)
+            print("MIDI -> ProgChange", program, destinationObjs)
         }
         
         //convert channel to a hex

@@ -26,6 +26,9 @@ public class XvMidiConstants {
     //MARK: control changes
     public static let kXvMidiReceiveControlChange:String = "kXvMidiReceiveControlChange"
     
+    //MARK: program changes
+    public static let kXvMidiReceiveProgramChange:String = "kXvMidiReceiveProgramChange"
+    
     //MARK: setup notifications
     public static let kXvMidiSetupChanged:String = "kXvMidiSetupChanged"
     
