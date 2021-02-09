@@ -10,10 +10,9 @@
 import Foundation
 import CoreMIDI
 
-public protocol NotificationBlockObserver:class {
+public protocol NotificationBlockDelegate:class {
     
-    func midiSetupChanged()
-    
+    func didReceiveMidiSetupChange()
 }
 
 class NotificationBlock {
@@ -24,7 +23,7 @@ class NotificationBlock {
     fileprivate let settings:Settings = Settings.sharedInstance
     
     //object that listens to updates from this notification block
-    public weak var observer:NotificationBlockObserver?
+    internal weak var delegate:NotificationBlockDelegate?
     
     //singleton code
     static let sharedInstance = NotificationBlock()
@@ -52,8 +51,10 @@ class NotificationBlock {
                 }
             }
             
-            observer?.midiSetupChanged() //let XvMidi know the setup has changed
-            outputCurrentMidiStatus()
+            delegate?.didReceiveMidiSetupChange() //pass up one level to XvMidi
+            
+            //too specific to Refraktions
+            //outputCurrentMidiStatus()
             
             break
             
@@ -111,6 +112,9 @@ class NotificationBlock {
         
     }
     
+    /*
+    //too specific to Refrkations
+     
     fileprivate func outputCurrentMidiStatus(){
         
         print("")
@@ -147,9 +151,8 @@ class NotificationBlock {
         }
         
         //post with data
-        Utils.postNotification(
-            name: XvMidiConstants.kXvMidiSetupChanged,
-            userInfo: ["message" : totalStr, "duration" : duration])
+        
     }
+    */
     
 }

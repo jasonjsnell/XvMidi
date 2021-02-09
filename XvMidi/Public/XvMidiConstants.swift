@@ -10,34 +10,6 @@ import Foundation
 
 public class XvMidiConstants {
     
-    //MARK: - NOTIFICATIONS -
-    //MARK: receive system commands
-    public static let kXvMidiReceiveSystemStart:String = "kXvMidiReceiveSystemStart"
-    public static let kXvMidiReceiveSystemStop:String = "kXvMidiReceiveSystemStop"
-    public static let kXvMidiReceiveSystemContinue:String = "kXvMidiReceiveSystemContinue"
-    public static let kXvMidiReceiveSystemPosition:String = "kXvMidiReceiveSystemPosition"
-    public static let kXvMidiReceiveSystemTempoChange:String = "kXvMidiReceiveSystemTempoChange"
-    public static let kXvMidiReceiveSystemClock:String = "kXvMidiReceiveSystemClock"
-    
-    //MARK: receive note commands
-    public static let kXvMidiReceiveNoteOn:String = "kXvMidiReceiveNoteOn"
-    public static let kXvMidiReceiveNoteOff:String = "kXvMidiReceiveNoteOff"
-    
-    //MARK: control changes
-    public static let kXvMidiReceiveControlChange:String = "kXvMidiReceiveControlChange"
-    
-    //MARK: program changes
-    public static let kXvMidiReceiveProgramChange:String = "kXvMidiReceiveProgramChange"
-    
-    //MARK: setup notifications
-    public static let kXvMidiSetupChanged:String = "kXvMidiSetupChanged"
-    
-    //MARK: destinations
-    public static let kXvMidiNoDestinationError:String = "kXvMidiNoDestinationError"
-    
-    //MARK: bypass
-    public static let kXvMidiSendBypass:String = "kXvMidiSendBypass"
-    
     //MARK: - CONSTANTS -
 
     //MARK: Midi Sync
@@ -65,7 +37,5 @@ public class XvMidiConstants {
     public static let NOTE_OFF:UInt8 = 128
     public static let CONTROL_CHANGE:UInt8 = 176
     public static let PROGRAM_CHANGE:UInt8 = 192
-    
-    
     
 }

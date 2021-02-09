@@ -23,19 +23,42 @@ Other classes -> MIDI IO -> MIDI Send -> MIDI Send Clock
  
 */
 
+
+@objc public protocol XvMidiDelegate:class {
+    func didReceiveMidiSystemStart()
+    func didReceiveMidiSystemStop()
+    func didReceiveMidiContinue()
+    func didReceiveMidi(position:Int)
+    func didReceiveMidi(tempo:Double)
+    func didReceiveMidiClock()
+    func didReceiveMidiOn(note:UInt8, channel:UInt8, velocity:UInt8)
+    func didReceiveMidiOff(note:UInt8, channel:UInt8)
+    func didReceiveMidi(control:UInt8, channel:UInt8, value:UInt8)
+    func didReceiveMidi(program:UInt8, channel:UInt8)
+    func didReceiveMidiSetupChange()
+    @objc optional func sendToAudiobus(packetList:UnsafeMutablePointer<MIDIPacketList>, channel:UInt8, system:Bool)
+}
+
+
 import Foundation
 import CoreMIDI
 
-//TODO: change notifications model to delegate model
-
-public class XvMidi:NotificationBlockObserver {
+public class XvMidi:NotificationBlockDelegate {
     
-
     fileprivate var debug:Bool = false
     
     //singleton code
     public static let sharedInstance = XvMidi()
     fileprivate init() {}
+    
+    //delegate
+    fileprivate weak var delegate:XvMidiDelegate?
+    public func set(delegate:XvMidiDelegate) {
+        
+        self.delegate = delegate
+        midiSend.set(delegate: delegate)
+        midiReceive.set(delegate: delegate)
+    }
     
     //MARK:- VARIABLES -
     
@@ -61,6 +84,8 @@ public class XvMidi:NotificationBlockObserver {
             midiReceive.bypass = newValue
         }
     }
+    
+    
     
     //bools
     fileprivate var active:Bool = false
@@ -111,7 +136,7 @@ public class XvMidi:NotificationBlockObserver {
             
             //MARK: INIT MIDI CLIENT
             //create notifcation blocks for watching messages
-            NotificationBlock.sharedInstance.observer = self
+            NotificationBlock.sharedInstance.delegate = self
             let notifyBlock: MIDINotifyBlock = NotificationBlock.sharedInstance.notifyBlock
         
             
@@ -306,8 +331,13 @@ public class XvMidi:NotificationBlockObserver {
     }
     
     //MARK: - NOTIFICATION BLOCK
-    public func midiSetupChanged() {
+    public func didReceiveMidiSetupChange() {
+        
+        //update midi send destinations
         midiSend.refreshDestinations()
+        
+        //pass up to delegate
+        delegate?.didReceiveMidiSetupChange()
     }
     
     //MARK: - RECEIVE BLOCK

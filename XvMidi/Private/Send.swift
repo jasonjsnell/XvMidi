@@ -27,6 +27,12 @@ class Send {
     static let sharedInstance = Send()
     fileprivate init() {}
     
+    //delegate
+    fileprivate var delegate:XvMidiDelegate?
+    func set(delegate:XvMidiDelegate) {
+        self.delegate = delegate
+    }
+    
     //MARK: - VARS -
     
     //bypass MIDI core sendMidi when audiobus midi functionality is on
@@ -453,15 +459,8 @@ class Send {
                 print("MIDI -> Audiobus")
             }
             
-            //audiobus bypass - send packetlist out through a notification
-            Utils.postNotification(
-                name: XvMidiConstants.kXvMidiSendBypass,
-                userInfo: [
-                    "packetList" : packetList,
-                    "channel" : onChannel,
-                    "system" : system
-                ]
-            )
+            //audiobus bypass - send packetlist out
+            delegate?.sendToAudiobus?(packetList: packetList, channel: onChannel, system: system)
         }
         
         //deinit and dealloc packet list

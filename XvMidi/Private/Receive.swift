@@ -24,6 +24,15 @@ class Receive {
     static let sharedInstance = Receive()
     fileprivate init() {}
     
+    //delegate
+    fileprivate var delegate:XvMidiDelegate?
+    func set(delegate:XvMidiDelegate) {
+        self.delegate = delegate
+        ReceiveClock.sharedInstance.delegate = delegate
+    }
+    
+    
+    
     //MARK: - VARS -
     
     fileprivate var appID:String = ""
@@ -185,7 +194,7 @@ class Receive {
                 //MARK: - SEQUENCER
                 //midi start (abelton)
                 if (status == 0xFA){
-                    Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveSystemStart, userInfo: nil)
+                    delegate?.didReceiveMidiSystemStart()
                 }
                 
                 //midi position (abelton, maschine)
@@ -195,24 +204,19 @@ class Receive {
                     let patternsOf128Steps:Int = Int(d2)
                     let totalSteps:Int = (patternsOf128Steps * 128) + steps
                     
-                    Utils.postNotification(
-                        name: XvMidiConstants.kXvMidiReceiveSystemPosition,
-                        userInfo: ["newPosition" : totalSteps])
+                    delegate?.didReceiveMidi(position: totalSteps)
                 }
                 
                 //midi stop (ableton, maschine)
                 if (status == 0xFC){
                     
                     ReceiveClock.sharedInstance.active = false //clock is now in inactive state
-                    
-                    Utils.postNotification(
-                        name: XvMidiConstants.kXvMidiReceiveSystemStop,
-                        userInfo: nil)
+                    delegate?.didReceiveMidiSystemStop()
                 }
                 
                 //midi continue (ableton)
                 if (status == 0xFB){
-                    Utils.postNotification(name: XvMidiConstants.kXvMidiReceiveSystemContinue, userInfo: nil)
+                    delegate?.didReceiveMidiContinue()
                 }
                 
             }
@@ -226,19 +230,12 @@ class Receive {
                 if (d2 == 0x0){
                     
                     //some midi controllers request a note off by putting the velocity to 0
-                    Utils.postNotification(
-                        name: XvMidiConstants.kXvMidiReceiveNoteOff,
-                        userInfo: ["channel" : channel, "note" : d1]
-                    )
+                    delegate?.didReceiveMidiOff(note: d1, channel: channel)
                     
                 } else {
                     
                     //else send normal note on
-                    Utils.postNotification(
-                        name: XvMidiConstants.kXvMidiReceiveNoteOn,
-                        userInfo: ["channel" : channel, "note" : d1, "velocity" : d2]
-                    )
-                    
+                    delegate?.didReceiveMidiOn(note: d1, channel: channel, velocity: d2)                    
                 }
             }
             
@@ -246,28 +243,19 @@ class Receive {
             //MARK: note off
             if (rawStatus == XvMidiConstants.NOTE_OFF){
                 
-                Utils.postNotification(
-                    name: XvMidiConstants.kXvMidiReceiveNoteOff,
-                    userInfo: ["channel" : channel, "note" : d1]
-                )
+                delegate?.didReceiveMidiOff(note: d1, channel: channel)
             }
             
             //MARK: - CONTROL CHANGES
             if (rawStatus == XvMidiConstants.CONTROL_CHANGE) {
                 
-                Utils.postNotification(
-                    name: XvMidiConstants.kXvMidiReceiveControlChange,
-                    userInfo: ["channel" : channel, "control" : d1, "value" : d2]
-                )
+                delegate?.didReceiveMidi(control: d1, channel: channel, value: d2)
             }
             
             //MARK: - PROGRAM CHANGES
             if (rawStatus == XvMidiConstants.PROGRAM_CHANGE) {
                 
-                Utils.postNotification(
-                    name: XvMidiConstants.kXvMidiReceiveProgramChange,
-                    userInfo: ["channel" : channel, "program" : d1]
-                )
+                delegate?.didReceiveMidi(program: d1, channel: channel)
             }
            
             //prep next round

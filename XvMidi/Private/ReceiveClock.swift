@@ -18,6 +18,9 @@ class ReceiveClock{
     static let sharedInstance = ReceiveClock()
     fileprivate init() {}
     
+    //delegate
+    weak var delegate:XvMidiDelegate?
+    
     fileprivate var exactTempo:Double = 0
     fileprivate var currRoundedTempo:Double = 0
     fileprivate var prevRoundedTempo:Double = 0
@@ -47,10 +50,8 @@ class ReceiveClock{
         
         //send notification on main queue
         DispatchQueue.main.async(execute: {
-            Utils.postNotification(
-                name: XvMidiConstants.kXvMidiReceiveSystemClock,
-                userInfo: nil
-            )
+            
+            self.delegate?.didReceiveMidiClock()
         })
         
         //measure distance between this timestamp and the last to calc tempo
@@ -101,11 +102,9 @@ class ReceiveClock{
                 if (currRoundedTempo != prevRoundedTempo){
                     
                     //if so, send notification
-                    Utils.postNotification(
-                        name: XvMidiConstants.kXvMidiReceiveSystemTempoChange,
-                        userInfo: ["exactTempo" : exactTempo])
-        
+                    delegate?.didReceiveMidi(tempo: exactTempo)
                 }
+                
                 prevRoundedTempo = currRoundedTempo
                 
                 if (debug){
