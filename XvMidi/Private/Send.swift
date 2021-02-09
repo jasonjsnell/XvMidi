@@ -21,7 +21,7 @@ class Send {
     
     fileprivate let debug:Bool = false
     fileprivate let noteDebug:Bool = false
-    fileprivate let sysDebug:Bool = true
+    fileprivate let sysDebug:Bool = false
     
     //singleton code
     static let sharedInstance = Send()
@@ -126,7 +126,7 @@ class Send {
             //if using virtual only, then keep user destinations blank
             if (name == XvMidiConstants.MIDI_DESTINATION_VIRTUAL_ONLY) {
                 userDestinations = []
-                print("MIDI -> User destinations: Virtual only")
+                if (debug) { print("MIDI -> User destinations: Virtual only") }
                 return
             }
             
@@ -150,7 +150,7 @@ class Send {
             }
         }
         
-        print("MIDI -> User destinations", userDestinations)
+        if (debug) { print("MIDI -> User destinations", userDestinations) }
     }
     
     internal func refreshDestinations() {
