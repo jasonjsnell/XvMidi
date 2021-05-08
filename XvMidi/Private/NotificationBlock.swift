@@ -10,7 +10,7 @@
 import Foundation
 import CoreMIDI
 
-public protocol NotificationBlockDelegate:class {
+public protocol NotificationBlockDelegate:AnyObject {
     
     func didReceiveMidiSetupChange()
 }

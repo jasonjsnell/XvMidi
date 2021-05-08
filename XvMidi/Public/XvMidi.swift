@@ -24,7 +24,7 @@ Other classes -> MIDI IO -> MIDI Send -> MIDI Send Clock
 */
 
 
-@objc public protocol XvMidiDelegate:class {
+@objc public protocol XvMidiDelegate:AnyObject {
     func didReceiveMidiSystemStart()
     func didReceiveMidiSystemStop()
     func didReceiveMidiContinue()
