@@ -39,6 +39,24 @@ Other classes -> MIDI IO -> MIDI Send -> MIDI Send Clock
     @objc optional func sendToAudiobus(packetList:UnsafeMutablePointer<MIDIPacketList>, channel:UInt8, system:Bool)
 }
 
+public struct XvMidiNote:Hashable {
+    
+    public let channel:UInt8
+    public let note:UInt8
+    public let velocity:UInt8
+    public init(channel:UInt8, note:UInt8, velocity:UInt8){
+        
+        self.channel = channel
+        self.note = note
+        self.velocity = velocity
+    }
+    
+//    public func hash(into hasher: inout Hasher) {
+//        hasher.combine(note)
+//        hasher.
+//    }
+}
+
 
 import Foundation
 import CoreMIDI
