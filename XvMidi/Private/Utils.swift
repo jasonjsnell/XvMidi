@@ -179,7 +179,7 @@ class Utils {
     }
 
     
-    //MARK: HELPERS
+    //MARK: - HELPERS
     
     class func getArrayOfCommonElements(fromArray1:[String], andArray2:[String]) -> [String]{
         
