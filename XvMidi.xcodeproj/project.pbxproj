@@ -16,6 +16,7 @@
 		9653BB821E6D63E4007159E5 /* XvMidiConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9653BB7F1E6D63E4007159E5 /* XvMidiConstants.swift */; };
 		9689ECBD1E8C54B200CDD415 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9689ECBC1E8C54B200CDD415 /* Settings.swift */; };
 		96B1BD151E70ABF00075C653 /* XvMidi.h in Headers */ = {isa = PBXBuildFile; fileRef = 96B1BD141E70ABF00075C653 /* XvMidi.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BBD15F2126815DAB007AD5B9 /* XvMidiCC.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD15F2026815DAB007AD5B9 /* XvMidiCC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		96B1BD121E70ABEA0075C653 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		96B1BD141E70ABF00075C653 /* XvMidi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XvMidi.h; sourceTree = "<group>"; };
 		96BFC1E31E6C22BC005B6D47 /* XvMidi.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = XvMidi.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BBD15F2026815DAB007AD5B9 /* XvMidiCC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = XvMidiCC.swift; path = XvMidi/Public/XvMidiCC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +75,7 @@
 			children = (
 				9653BB7E1E6D63E4007159E5 /* XvMidi.swift */,
 				9653BB7F1E6D63E4007159E5 /* XvMidiConstants.swift */,
+				BBD15F2026815DAB007AD5B9 /* XvMidiCC.swift */,
 				9653BB6E1E6D6371007159E5 /* Private */,
 			);
 			sourceTree = "<group>";
@@ -169,6 +172,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9653BB811E6D63E4007159E5 /* XvMidi.swift in Sources */,
+				BBD15F2126815DAB007AD5B9 /* XvMidiCC.swift in Sources */,
 				9653BB7D1E6D63DC007159E5 /* Utils.swift in Sources */,
 				9653BB791E6D63DC007159E5 /* NotificationBlock.swift in Sources */,
 				9653BB821E6D63E4007159E5 /* XvMidiConstants.swift in Sources */,
