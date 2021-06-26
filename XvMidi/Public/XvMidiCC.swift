@@ -13,14 +13,15 @@ import Foundation
 //scales it to a MIDI CC
 //and sends it to the set channel
 
-
-
 public class XvMidiCC {
     
     fileprivate let midi:XvMidi = XvMidi.sharedInstance
     
     fileprivate let channel:UInt8
-    fileprivate let cc:UInt8
+    public var cc:UInt8 {
+        get { return _cc }
+    }
+    fileprivate let _cc:UInt8
     fileprivate var currMidiValue:UInt8
     fileprivate let primaryScaler:XvScaler
     
@@ -39,7 +40,7 @@ public class XvMidiCC {
         self.modulationC = 0
         
         self.channel = channel
-        self.cc = cc
+        self._cc = cc
         
         //scales the value coming in via the set func (custom range)
         primaryScaler = XvScaler(
@@ -137,7 +138,7 @@ public class XvMidiCC {
         if (modulatedMidiValue != currMidiValue) {
             
             //send into midi system
-            midi.controlChange(channel: channel, controller: cc, value: modulatedMidiValue)
+            midi.controlChange(channel: channel, controller: _cc, value: modulatedMidiValue)
            
             //update value for next round
             currMidiValue = modulatedMidiValue
@@ -148,10 +149,10 @@ public class XvMidiCC {
     public func didReceiveProgramChange(){
         
         //push the curr value out to the midi system
-        midi.controlChange(channel: channel, controller: cc, value: currMidiValue)
+        midi.controlChange(channel: channel, controller: _cc, value: currMidiValue)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [self] in
-            midi.controlChange(channel: channel, controller: cc, value: currMidiValue)
+            midi.controlChange(channel: channel, controller: _cc, value: currMidiValue)
         }
     }
     
