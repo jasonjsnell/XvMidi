@@ -32,6 +32,8 @@ public class XvMidiCC {
     fileprivate var modulationC:Double
     fileprivate let modulationScaler:XvScaler
     
+    public var active:Bool = true
+    
     public init(channel:UInt8, cc:UInt8, min:UInt8, max:UInt8, modMin:Double = 0, modMax:Double = 0, initialValue:UInt8? = nil) {
         
         self.currMidiValue = 0
@@ -75,10 +77,10 @@ public class XvMidiCC {
     }
     
     //takes 0-1 double, converts it, and sets a midi value
-    public func set(value:Double) {
+    public func set(value:Double, force:Bool = false) {
         
         if (value.isInfinite || value.isNaN) { return }
-        set(midiValue: _convertPrimaryValueToMidiValue(double: value))
+        set(midiValue: _convertPrimaryValueToMidiValue(double: value), force: force)
     }
     
     //takes a simultaneous request from multiple sources
@@ -119,7 +121,7 @@ public class XvMidiCC {
     }
     
     //set midiValue directly
-    public func set(midiValue:UInt8) {
+    public func set(midiValue:UInt8, force:Bool = false) {
         
         //sum all the modulation changes
         let modulationsSum:Double = modulationA + modulationB + modulationC
@@ -134,11 +136,18 @@ public class XvMidiCC {
         //convert back to UInt8
         let modulatedMidiValue:UInt8 = UInt8(modulatedMidiDouble)
         
-        //only send if the value is new
+        var setNew:Bool = force //set new value if force is on
         if (modulatedMidiValue != currMidiValue) {
+            setNew = true //if new var value, then set new value
+        }
+        
+        //only send if the value is new or force = true
+        if (setNew) {
             
             //send into midi system
-            midi.controlChange(channel: channel, controller: _cc, value: modulatedMidiValue)
+            if (active) {
+                midi.controlChange(channel: channel, controller: _cc, value: modulatedMidiValue)
+            }
            
             //update value for next round
             currMidiValue = modulatedMidiValue
